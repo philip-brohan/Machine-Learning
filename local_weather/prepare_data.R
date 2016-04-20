@@ -1,7 +1,5 @@
-library(neuralnet)
 library(GSDF.TWCR)
 library(lubridate)
-library(hexbin)
 library(pracma)
 
 # Get the TWCR data - want UK region, every 6 hours
@@ -116,17 +114,3 @@ ukw<-data.frame(slp=as.vector(prmsl.std$data),
 
 saveRDS(ukw,file='ukw.rds')
 
-nn<-neuralnet(at~slp+u+v+cduvb,data=ukw,hidden=2,algorithm='rprop-')
-
-plot(hexbin(as.vector(air.2m.std$data),as.vector(nn$net.result[[1]])))
-
-fitted<-air.2m
-fitted$data[]<-as.vector(nn$net.result[[1]])
-
-compare.fit<-function(n,...) {
-
-   f.in<-GSDF.reduce.1d(air.2m.std,'time',function(x){return(x[n])})
-   f.out<-GSDF.reduce.1d(fitted,'time',function(x){return(x[n])})
-   GSDF.pplot.2d(f.in,f.out,...)
-
-}
