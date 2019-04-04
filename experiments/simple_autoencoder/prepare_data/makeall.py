@@ -21,10 +21,10 @@ def is_done(year,month,day,hour):
 
 f=open("run.txt","w+")
 
-for year in [1969]: #[1969,1979,1989,1999,2009]:
+for year in [1969,1979,1989,1999,2009]:
 
-    start_day=datetime.datetime(year,  3,  1,  0)
-    end_day  =datetime.datetime(year,  3, 31, 23)
+    start_day=datetime.datetime(year,  1,  1,  0)
+    end_day  =datetime.datetime(year, 12, 31, 23)
 
     current_day=start_day
     while current_day<=end_day:

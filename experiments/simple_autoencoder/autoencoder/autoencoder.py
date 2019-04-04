@@ -14,8 +14,8 @@ import numpy
 
 # Set the epochs and steps, because that sets the amount of
 #  data we need to provide
-n_epochs=100
-n_steps=60
+n_epochs=10
+n_steps=350
 
 # File names for the serialised tensors to train on
 input_file_dir=("%s/Machine-Learning-experiments/simple_autoencoder/" %
