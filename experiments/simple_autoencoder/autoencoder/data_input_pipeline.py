@@ -6,6 +6,7 @@ import os
 import tensorflow as tf
 tf.enable_eager_execution()
 from tensorflow.data import Dataset,make_one_shot_iterator
+from tensorflow.python.framework.errors_impl import OutOfRangeError
 from glob import glob
 import numpy
 
@@ -28,8 +29,11 @@ tr_data = tr_data.map(load_tensor)
 # tr_data is now a useable dataset providing the training data
 #  iterate over it to show it's working.
 fn_iterator = make_one_shot_iterator(tr_data)
-next_fn = fn_iterator.get_next()
 
 while True:
-    elem = next_fn
-    print(elem)
+    try:
+        elem = fn_iterator.get_next()
+        print(elem)
+    except OutOfRangeError:
+        print("Out of data")
+        break
