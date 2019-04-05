@@ -31,14 +31,19 @@ parser.add_argument("--version", help="20CR version",
                     default='2c',type=str,required=False)
 parser.add_argument("--variable", help="20CR variable",
                     default='prmsl',type=str,required=False)
+parser.add_argument("--test", help="test data, not training",
+                    action="store_true")
 parser.add_argument("--opfile", help="tf data file name",
                     default=None,
                     type=str,required=False)
 args = parser.parse_args()
 if args.opfile is None:
-    args.opfile = "%s/Machine-Learning-experiments/simple_autoencoder/%04d-%02d-%02d:%02d_%s.tfd" % (
-                  os.getenv('SCRATCH'),args.year,
-                  args.month,args.day,args.hour,args.variable)
+    group='training_data'
+    if args.test: group='test_data'
+    opfs="%s/Machine-Learning-experiments/simple_autoencoder/"+\
+          "%s/%04d-%02d-%02d:%02d_%s.tfd"
+    args.opfile = opfs % (os.getenv('SCRATCH'),group,args.year,
+                          args.month,args.day,args.hour,args.variable)
 
 if not os.path.isdir(os.path.dirname(args.opfile)):
     os.makedirs(os.path.dirname(args.opfile))

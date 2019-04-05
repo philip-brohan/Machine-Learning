@@ -8,26 +8,24 @@
 import os
 import tensorflow as tf
 #tf.enable_eager_execution()
-from tensorflow.data import Dataset,make_one_shot_iterator
+from tensorflow.data import Dataset
 from glob import glob
 import numpy
 
-# Set the epochs and steps, because that sets the amount of
-#  data we need to provide
-n_epochs=10
-n_steps=350
+# How many times will we train on each training data point
+n_epochs=2
 
 # File names for the serialised tensors to train on
-input_file_dir=("%s/Machine-Learning-experiments/simple_autoencoder/" %
+input_file_dir=("%s/Machine-Learning-experiments/simple_autoencoder/training_data" %
                    os.getenv('SCRATCH'))
 training_files=glob("%s/*.tfd" % input_file_dir)
-n_repeat=int(n_epochs*n_steps/len(training_files))+1
+n_steps=len(training_files)
 train_tfd = tf.constant(training_files)
 
 # Create TensorFlow Dataset objects from the file names
 tr_data = Dataset.from_tensor_slices(train_tfd)
 tr_data = tr_data.shuffle(buffer_size=10, reshuffle_each_iteration=False)
-tr_data = tr_data.repeat(n_repeat)
+tr_data = tr_data.repeat(n_epochs)
 
 # We don't want the file names, we want their contents, so
 #  add a map to convert from names to contents.
@@ -39,7 +37,17 @@ def load_tensor(file_name):
     return (ict,ict)
 tr_data = tr_data.map(load_tensor)
 
-# That's set up a Dataset to use - now specify an autoencoder model
+# We want a similar dataset for testing
+test_file_dir=("%s/Machine-Learning-experiments/simple_autoencoder/test_data" %
+                   os.getenv('SCRATCH'))
+test_files=glob("%s/*.tfd" % test_file_dir)
+test_steps=len(test_files)
+test_tfd = tf.constant(test_files)
+test_data = Dataset.from_tensor_slices(test_tfd)
+test_data = test_data.repeat(n_epochs)
+test_data = test_data.map(load_tensor)
+
+# That's set up the Datasets to use - now specify an autoencoder model
 
 # Input placeholder - treat data as 1d
 original = tf.keras.layers.Input(shape=(91*180,))
@@ -59,5 +67,8 @@ autoencoder.fit(x=tr_data, # Get (source,target) pairs from this Dataset
                 epochs=n_epochs,
                 steps_per_epoch=n_steps,
                 shuffle=True,
+                validation_data=test_data,
+                validation_steps=test_steps,
                 verbose=2) # One line per epoch
 
+# Save the 
