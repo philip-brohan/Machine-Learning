@@ -24,7 +24,7 @@ train_tfd = tf.constant(training_files)
 
 # Create TensorFlow Dataset objects from the file names
 tr_data = Dataset.from_tensor_slices(train_tfd)
-tr_data = tr_data.shuffle(buffer_size=10, reshuffle_each_iteration=True)
+tr_data = tr_data.shuffle(buffer_size=10, reshuffle_each_iteration=False)
 tr_data = tr_data.repeat(n_epochs)
 
 # Normalise the data to mean=0 sd=1 (approx)
@@ -67,7 +67,7 @@ decoded = tf.keras.layers.Dense(91*180, activation='sigmoid')(encoded)
 # Model relating original to output
 autoencoder = tf.keras.models.Model(original, decoded)
 # Choose a loss metric to minimise (RMS)
-#  and an optimiser to use (Adadelta)
+#  and an optimiser to use (adadelta)
 autoencoder.compile(optimizer='adadelta', loss='mean_squared_error')
 
 # Train the autoencoder

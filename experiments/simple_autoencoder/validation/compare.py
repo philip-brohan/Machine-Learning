@@ -110,7 +110,7 @@ mg.pressure.plot(ax_orig,ic,
 mg.pressure.plot(ax_post,pm,
                  scale=0.1,
                  resolution=0.25,
-                 levels=numpy.arange(10060,10090,2),
+                 levels=numpy.arange(10060,10100,2),
                  colors='blue',
                  label=True,
                  linewidths=2)
