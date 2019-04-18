@@ -1,0 +1,20 @@
+Philip's Machine Learning Experiments
+=====================================
+
+Climate research is a data-rich field. We have terrabytes of in-situ observations, and many petabytes each of satellite observations, reanalyses, forecasts, and simulations. Modern `Machine Learning (ML) <https://en.wikipedia.org/wiki/Machine_learning>`_ methods promise powerful new ways to analyse and improve both forecasts and reconstructions; if we can learn to use them effectively.
+
+This page documents my attempts to learn and use ML methods. I chose to use `TensorFlow <https://www.tensorflow.org/>`_ (as it's powerful, popular, and open), and to work with data from the `20th Century Reanalysis <https://www.esrl.noaa.gov/psd/data/20thC_Rean/>`_ (as it's open, accessible, and I already have `software for working with it <https://brohan.org/IRData/>`_).
+
+.. toctree::
+   :maxdepth: 1
+
+   Getting started - a simple autoencoder <simple_autoencoder>
+   
+
+.. toctree::
+   :titlesonly:
+   :maxdepth: 1
+
+   Small Print <credits>
+
+This document is crown copyright (2019). It is published under the terms of the `Open Government Licence <https://www.nationalarchives.gov.uk/doc/open-government-licence/version/2/>`_.
