@@ -12,8 +12,14 @@
 #
 
 # Prepare a piece of tf data from 20CR - convert to tensor, normalise, save as tf.load-able file.
+import os
+import iris
+import tensorflow as tf
+import IRData.twcr as twcr
+from .normalise import get_normalise_function
 
-def prepare_data(date,purpose='training',source='20CR2c',variable='prmsl',normalise=None):
+def prepare_data(date,purpose='training',source='20CR2c',variable='prmsl',
+                 member=1,normalise=None,opfile=None):
     """Make tf.load-able files, suitably normalised for training ML models 
 
     Data will be stored in directory $SCRATCH/Machine-Learning-experiments.
@@ -29,27 +35,33 @@ def prepare_data(date,purpose='training',source='20CR2c',variable='prmsl',normal
         Nothing, but creates, as side effect, a tf.load-able file with the normalised data for the given source, variable, and date.
 
     Raises:
-        ValueError: Unsupported source, or can't load the original data, or noremalisation failed.
+        ValueError: Unsupported source, or can't load the original data, or normalisation failed.
 
     |
     """
-    # File names for the serialised tensors (made by :func:`create_dataset`)
-    input_file_dir=("%s/Machine-Learning-experiments/datasets/%s/%s/%s" %
+    if opfile is None:
+        opfile=("%s/Machine-Learning-experiments/datasets/%s/%s/%s" %
                        (os.getenv('SCRATCH'),source,variable,purpose))
-    data_files=glob("%s/*.tfd" % input_file_dir)
-    if len(data_files)==0;
-        raise ValueError('No prepared data on disc')
-    n_steps=len(training_files)
-    data_tfd = tf.constant(training_files)
+    if not os.path.isdir(os.path.dirname(opfile)):
+        os.makedirs(os.path.dirname(opfile))
 
-    # Create TensorFlow Dataset objects from the file names
-    tr_data = Dataset.from_tensor_slices(data_tfd)
-    tr_data = tr_data.shuffle(buffer_size=buffer_size,
-                              reshuffle_each_iteration=reshuffle_each_iteration)
-    if length is not none:
-        nrep=(length//n_steps)+1
-        tr_data = tr_data.repeat(nrep)
+    ic=twcr.load(variable,datetime.datetime(date.year,date.month,
+                                                date.day,date.hour),
+                 version=args.version)
+
+    # Reduce to selected ensemble member
+    ic=ic.extract(iris.Constraint(member=args.member))
     
-    return tr_data
+    # Normalise (to mean=0, sd=1)
+    if normalise is None:
+        normalise=get_normalise_function(source,variable)
+    ic.data=normalise(ic.data)
+
+    # Convert to Tensor
+    ict=tf.convert_to_tensor(ic.data, numpy.float32)
+
+    # Write to tfrecord file
+    sict=tf.serialize_tensor(ict)
+    tf.write_file(opfile,sict)
 
 
