@@ -54,7 +54,12 @@ model_save_file=("%s/Machine-Learning-experiments/simple_autoencoder/"+
                  os.getenv('SCRATCH'),args.epoch)
 autoencoder=tf.keras.models.load_model(model_save_file)
 
-# Reverse the normalisation - back to hPa
+# Normalisation - Pa to mean=0, sd=1 - and back
+def normalise(x):
+   x -= 101325
+   x /= 3000
+   return x
+
 def unnormalise(x):
    x *= 3000
    x += 101325
@@ -62,11 +67,12 @@ def unnormalise(x):
 
 # Run the data through the autoencoder and convert back to iris cube
 pm=ic.copy()
-ict=tf.convert_to_tensor(ic.data, numpy.float32)
+pm.data=normalise(pm.data)
+ict=tf.convert_to_tensor(pm.data, numpy.float32)
 ict=tf.reshape(ict,[1,91*180]) # ????
 result=autoencoder.predict_on_batch(ict)
 result=tf.reshape(result,[91,180])
-pm.data=unnormalise(result)-2000
+pm.data=unnormalise(result)
 
 # Make a comparison plot - original on top, encoded below
 fig=Figure(figsize=(15,15*1.06/1.04),  # Width, Height (inches)
@@ -108,9 +114,9 @@ mg.pressure.plot(ax_orig,ic,
                  label=True,
                  linewidths=2)
 mg.pressure.plot(ax_post,pm,
-                 scale=0.1,
+                 scale=0.01,
                  resolution=0.25,
-                 levels=numpy.arange(10060,10100,2),
+                 levels=numpy.arange(1010,1040,2),
                  colors='blue',
                  label=True,
                  linewidths=2)
@@ -124,4 +130,5 @@ mg.utils.plot_label(ax_post,
 
 
 # Render the figure as a png
-fig.savefig('comparison.png')
+fig.savefig("comparison_%04d-%02d-%02d:%02d.png" % 
+             (args.year,args.month,args.day,args.hour))

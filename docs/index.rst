@@ -8,7 +8,10 @@ This page documents my attempts to learn and use ML methods. I chose to use `Ten
 .. toctree::
    :maxdepth: 1
 
-   Getting started - a simple autoencoder <simple_autoencoder>
+   Getting climate data into TensorFlow <prepare_data/prepare_data>
+   Getting started - a simple autoencoder <simple_autoencoder/autoencoder>
+
+..
    A utility package for data provision <package/ML_Utilities>
    
 

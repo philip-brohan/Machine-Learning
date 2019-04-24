@@ -13,8 +13,8 @@ import datetime
 
 # Function to check if the job is already done for this timepoint
 def is_done(year,month,day,hour,group):
-    op_file_name=("%s/Machine-Learning-experiments/simple_autoencoder/" +
-                  "%s/%04d-%02d-%02d:%02d_prmsl.tfd") % (
+    op_file_name=("%s/Machine-Learning-experiments/datasets/20CR2c/prmsl/" +
+                  "%s/%04d-%02d-%02d:%02d.tfd") % (
                             os.getenv('SCRATCH'),group,
                             year,month,day,hour)
     if os.path.isfile(op_file_name):
@@ -33,7 +33,7 @@ for year in [1969,1979,1989,1999,2009]:
     while current_day<=end_day:
         if count%10==0:
             if not is_done(current_day.year,current_day.month,
-                           current_day.day,current_day.hour,'test_data'):
+                           current_day.day,current_day.hour,'test'):
                 cmd=("./make_training_tensor.py --year=%d --month=%d" +
                     " --day=%d --hour=%d --test \n") % (
                        current_day.year,current_day.month,
@@ -41,7 +41,7 @@ for year in [1969,1979,1989,1999,2009]:
                 f.write(cmd)
         else:
             if not is_done(current_day.year,current_day.month,
-                           current_day.day,current_day.hour,'training_data'):
+                           current_day.day,current_day.hour,'training'):
                 cmd=("./make_training_tensor.py --year=%d --month=%d" +
                     " --day=%d --hour=%d \n") % (
                        current_day.year,current_day.month,

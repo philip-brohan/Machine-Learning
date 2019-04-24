@@ -16,44 +16,49 @@ import numpy
 n_epochs=100
 
 # File names for the serialised tensors to train on
-input_file_dir=("%s/Machine-Learning-experiments/simple_autoencoder/training_data" %
+input_file_dir=("%s/Machine-Learning-experiments/datasets/20CR2c/prmsl/training/" %
                    os.getenv('SCRATCH'))
 training_files=glob("%s/*.tfd" % input_file_dir)
 n_steps=len(training_files)
 train_tfd = tf.constant(training_files)
 
-# Create TensorFlow Dataset objects from the file names
+
+# Create TensorFlow Dataset object from the file names
 tr_data = Dataset.from_tensor_slices(train_tfd)
-tr_data = tr_data.shuffle(buffer_size=10, reshuffle_each_iteration=False)
+
+# Use all the data once each epoch
 tr_data = tr_data.repeat(n_epochs)
 
-# Normalise the data to mean=0 sd=1 (approx)
-# specific to prmsl
-def normalise(x):
-    x -= 101325
-    x /= 3000
-    return x
+# Present the data in random order
+# ?? What does buffer_size do?
+tr_data = tr_data.shuffle(buffer_size=10)
 
 # We don't want the file names, we want their contents, so
 #  add a map to convert from names to contents.
-# Actually want a tuple of (contents,contents) for source and target
 def load_tensor(file_name):
     sict=tf.read_file(file_name) # serialised
     ict=tf.parse_tensor(sict,numpy.float32)
-    ict=normalise(ict) # values to around 0
-    ict=tf.reshape(ict,[1,91*180]) # ????
-    return (ict,ict)
+    return ict
 tr_data = tr_data.map(load_tensor)
 
-# We want a similar dataset for testing
-test_file_dir=("%s/Machine-Learning-experiments/simple_autoencoder/test_data" %
+# Also need to reshape the data to linear, and produce a tuple
+#  (source,target) for model
+def to_model(ict):
+   ict=tf.reshape(ict,[1,91*180])
+   return(ict,ict)
+tr_data = tr_data.map(to_model)
+
+# Make similar dataset for testing
+test_file_dir=("%s/Machine-Learning-experiments/datasets/20CR2c/prmsl/test/" %
                    os.getenv('SCRATCH'))
 test_files=glob("%s/*.tfd" % test_file_dir)
 test_steps=len(test_files)
 test_tfd = tf.constant(test_files)
 test_data = Dataset.from_tensor_slices(test_tfd)
 test_data = test_data.repeat(n_epochs)
+test_data = test_data.shuffle(buffer_size=10)
 test_data = test_data.map(load_tensor)
+test_data = test_data.map(to_model)
 
 # That's set up the Datasets to use - now specify an autoencoder model
 
@@ -81,4 +86,6 @@ autoencoder.fit(x=tr_data, # Get (source,target) pairs from this Dataset
 # Save the model
 save_file="%s/Machine-Learning-experiments/simple_autoencoder/saved_models/Epoch_%04d" % (
                  os.getenv('SCRATCH'),n_epochs)
+if not os.path.isdir(os.path.dirname(save_file)):
+    os.makedirs(os.path.dirname(save_file))
 tf.keras.models.save_model(autoencoder,save_file)
