@@ -1,0 +1,146 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>ML_Utilities.prepare_data &#8212; Machine Learning Experiments</title>
+    <link rel="stylesheet" href="../../_static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../_static/language_data.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">ML Experiments</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../index.html">
+              <img class="logo" src="../../_static/Weather-Network.png" alt="Logo"/>
+            </a></p>
+<h3><a href="../../index.html">Table of Contents</a></h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../prepare_data/prepare_data.html">Getting climate data into TensorFlow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../simple_autoencoder/autoencoder.html">Getting started - a simple autoencoder</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../credits.html">Small Print</a></li>
+</ul>
+
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for ML_Utilities.prepare_data</h1><div class="highlight"><pre>
+<span></span><span class="c1"># (C) British Crown Copyright 2019, Met Office</span>
+<span class="c1">#</span>
+<span class="c1"># This code is free software: you can redistribute it and/or modify it under</span>
+<span class="c1"># the terms of the GNU Lesser General Public License as published by the</span>
+<span class="c1"># Free Software Foundation, either version 3 of the License, or</span>
+<span class="c1"># (at your option) any later version.</span>
+<span class="c1">#</span>
+<span class="c1"># This code is distributed in the hope that it will be useful,</span>
+<span class="c1"># but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="c1"># MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
+<span class="c1"># GNU Lesser General Public License for more details.</span>
+<span class="c1">#</span>
+
+<span class="c1"># Prepare a piece of tf data from 20CR - convert to tensor, normalise, save as tf.load-able file.</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">iris</span>
+<span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
+<span class="kn">import</span> <span class="nn">IRData.twcr</span> <span class="k">as</span> <span class="nn">twcr</span>
+<span class="kn">from</span> <span class="nn">.normalise</span> <span class="k">import</span> <span class="n">get_normalise_function</span>
+
+<div class="viewcode-block" id="prepare_data"><a class="viewcode-back" href="../../package/ML_Utilities.html#ML_Utilities.prepare_data">[docs]</a><span class="k">def</span> <span class="nf">prepare_data</span><span class="p">(</span><span class="n">date</span><span class="p">,</span><span class="n">purpose</span><span class="o">=</span><span class="s1">&#39;training&#39;</span><span class="p">,</span><span class="n">source</span><span class="o">=</span><span class="s1">&#39;20CR2c&#39;</span><span class="p">,</span><span class="n">variable</span><span class="o">=</span><span class="s1">&#39;prmsl&#39;</span><span class="p">,</span>
+                 <span class="n">member</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="n">normalise</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">opfile</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Make tf.load-able files, suitably normalised for training ML models </span>
+
+<span class="sd">    Data will be stored in directory $SCRATCH/Machine-Learning-experiments.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        date (obj:`datetime.datetime`): datetime to get data for.</span>
+<span class="sd">        purpose (:obj:`str`): &#39;training&#39; (default) or &#39;test&#39;.</span>
+<span class="sd">        source (:obj:`str`): Where to get the data from - at the moment, only &#39;20CR2c&#39; is supported .</span>
+<span class="sd">        variable (:obj:`str`): Variable to use (e.g. &#39;prmsl&#39;)</span>
+<span class="sd">        normalise: (:obj:`func`): Function to normalise the data (to mean=0, sd=1). Function must take an :obj:`iris.cube.cube&#39; as argument and returns a normalised cube as result. If None (default) use a standard normalisation function (see :func:`normalise`.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        Nothing, but creates, as side effect, a tf.load-able file with the normalised data for the given source, variable, and date.</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">        ValueError: Unsupported source, or can&#39;t load the original data, or normalisation failed.</span>
+
+<span class="sd">    |</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">opfile</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">opfile</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">/Machine-Learning-experiments/datasets/</span><span class="si">%s</span><span class="s2">/</span><span class="si">%s</span><span class="s2">/</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span>
+                       <span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s1">&#39;SCRATCH&#39;</span><span class="p">),</span><span class="n">source</span><span class="p">,</span><span class="n">variable</span><span class="p">,</span><span class="n">purpose</span><span class="p">))</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">opfile</span><span class="p">)):</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">opfile</span><span class="p">))</span>
+
+    <span class="n">ic</span><span class="o">=</span><span class="n">twcr</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">variable</span><span class="p">,</span><span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="p">(</span><span class="n">date</span><span class="o">.</span><span class="n">year</span><span class="p">,</span><span class="n">date</span><span class="o">.</span><span class="n">month</span><span class="p">,</span>
+                                                <span class="n">date</span><span class="o">.</span><span class="n">day</span><span class="p">,</span><span class="n">date</span><span class="o">.</span><span class="n">hour</span><span class="p">),</span>
+                 <span class="n">version</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">version</span><span class="p">)</span>
+
+    <span class="c1"># Reduce to selected ensemble member</span>
+    <span class="n">ic</span><span class="o">=</span><span class="n">ic</span><span class="o">.</span><span class="n">extract</span><span class="p">(</span><span class="n">iris</span><span class="o">.</span><span class="n">Constraint</span><span class="p">(</span><span class="n">member</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">member</span><span class="p">))</span>
+    
+    <span class="c1"># Normalise (to mean=0, sd=1)</span>
+    <span class="k">if</span> <span class="n">normalise</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">normalise</span><span class="o">=</span><span class="n">get_normalise_function</span><span class="p">(</span><span class="n">source</span><span class="p">,</span><span class="n">variable</span><span class="p">)</span>
+    <span class="n">ic</span><span class="o">.</span><span class="n">data</span><span class="o">=</span><span class="n">normalise</span><span class="p">(</span><span class="n">ic</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+
+    <span class="c1"># Convert to Tensor</span>
+    <span class="n">ict</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">convert_to_tensor</span><span class="p">(</span><span class="n">ic</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">numpy</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+
+    <span class="c1"># Write to tfrecord file</span>
+    <span class="n">sict</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">serialize_tensor</span><span class="p">(</span><span class="n">ict</span><span class="p">)</span>
+    <span class="n">tf</span><span class="o">.</span><span class="n">write_file</span><span class="p">(</span><span class="n">opfile</span><span class="p">,</span><span class="n">sict</span><span class="p">)</span></div>
+
+
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">ML Experiments</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    </div>
+  </body>
+</html>

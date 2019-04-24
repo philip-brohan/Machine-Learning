@@ -1,0 +1,140 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>ML_Utilities.dataset &#8212; Machine Learning Experiments</title>
+    <link rel="stylesheet" href="../../_static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../_static/language_data.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">ML Experiments</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../index.html">
+              <img class="logo" src="../../_static/Weather-Network.png" alt="Logo"/>
+            </a></p>
+<h3><a href="../../index.html">Table of Contents</a></h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../prepare_data/prepare_data.html">Getting climate data into TensorFlow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../simple_autoencoder/autoencoder.html">Getting started - a simple autoencoder</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../credits.html">Small Print</a></li>
+</ul>
+
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for ML_Utilities.dataset</h1><div class="highlight"><pre>
+<span></span><span class="c1"># (C) British Crown Copyright 2019, Met Office</span>
+<span class="c1">#</span>
+<span class="c1"># This code is free software: you can redistribute it and/or modify it under</span>
+<span class="c1"># the terms of the GNU Lesser General Public License as published by the</span>
+<span class="c1"># Free Software Foundation, either version 3 of the License, or</span>
+<span class="c1"># (at your option) any later version.</span>
+<span class="c1">#</span>
+<span class="c1"># This code is distributed in the hope that it will be useful,</span>
+<span class="c1"># but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="c1"># MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
+<span class="c1"># GNU Lesser General Public License for more details.</span>
+<span class="c1">#</span>
+
+<span class="c1"># Create a tf.data Dataset to provide 20CR data to tf.keras models.</span>
+
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
+
+<div class="viewcode-block" id="dataset"><a class="viewcode-back" href="../../package/ML_Utilities.html#ML_Utilities.dataset">[docs]</a><span class="k">def</span> <span class="nf">dataset</span><span class="p">(</span><span class="n">purpose</span><span class="o">=</span><span class="s1">&#39;training&#39;</span><span class="p">,</span><span class="n">source</span><span class="o">=</span><span class="s1">&#39;20CR2c&#39;</span><span class="p">,</span><span class="n">variable</span><span class="o">=</span><span class="s1">&#39;prmsl&#39;</span><span class="p">,</span><span class="n">length</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">shuffle</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span><span class="n">buffer_size</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span><span class="n">reshuffle_each_iteration</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Provide a :obj:`tf.data.Dataset` of analysis data, for tf.keras model training or tests.</span>
+
+<span class="sd">    Data must be available in directory $SCRATCH/Machine-Learning-experiments, previously generated by :func:`prepare_data`.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        purpose (:obj:`str`): &#39;training&#39; (default) or &#39;test&#39;.</span>
+<span class="sd">        source (:obj:`str`): Where to get the data from - any string, but needs top be supported by :func:`prepare_data`.</span>
+<span class="sd">        variable (:obj:`str`): Variable to fetch (e.g. &#39;prmsl&#39;).</span>
+<span class="sd">        length (:obj:`int`): Required length - will be repeated enough times to deliver at least this many data points. If None (default) uses the amount of data on disc as the length (not repeated).</span>
+<span class="sd">        shuffle (:obj:`bool`): If True (default), shuffle the data order. If False, present the data in the order of the files on disc.</span>
+<span class="sd">        buffer_size (:obj:`int`): Passed to :func:`tf.data.Dataset.shuffle`.</span>
+<span class="sd">        reshuffle_each_iteration (:obj:`bool`): Passed to :func:`tf.data.Dataset.shuffle`.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        :obj:`tf.data.Dataset`: Dataset suitable for passing to tf.keras models.</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">        ValueError: Necessary data not on disc, need to run :func:`create_dataset` to make it.</span>
+
+<span class="sd">    |</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># File names for the serialised tensors (made by :func:`create_dataset`)</span>
+    <span class="n">input_file_dir</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">/Machine-Learning-experiments/datasets/</span><span class="si">%s</span><span class="s2">/</span><span class="si">%s</span><span class="s2">/</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span>
+                       <span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s1">&#39;SCRATCH&#39;</span><span class="p">),</span><span class="n">source</span><span class="p">,</span><span class="n">variable</span><span class="p">,</span><span class="n">purpose</span><span class="p">))</span>
+    <span class="n">data_files</span><span class="o">=</span><span class="n">glob</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">/*.tfd&quot;</span> <span class="o">%</span> <span class="n">input_file_dir</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">data_files</span><span class="p">)</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;No prepared data on disc&#39;</span><span class="p">)</span>
+    <span class="n">n_steps</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">training_files</span><span class="p">)</span>
+    <span class="n">data_tfd</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">constant</span><span class="p">(</span><span class="n">training_files</span><span class="p">)</span>
+
+    <span class="c1"># Create TensorFlow Dataset objects from the file names</span>
+    <span class="n">tr_data</span> <span class="o">=</span> <span class="n">Dataset</span><span class="o">.</span><span class="n">from_tensor_slices</span><span class="p">(</span><span class="n">data_tfd</span><span class="p">)</span>
+    <span class="n">tr_data</span> <span class="o">=</span> <span class="n">tr_data</span><span class="o">.</span><span class="n">shuffle</span><span class="p">(</span><span class="n">buffer_size</span><span class="o">=</span><span class="n">buffer_size</span><span class="p">,</span>
+                              <span class="n">reshuffle_each_iteration</span><span class="o">=</span><span class="n">reshuffle_each_iteration</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">length</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">none</span><span class="p">:</span>
+        <span class="n">nrep</span><span class="o">=</span><span class="p">(</span><span class="n">length</span><span class="o">//</span><span class="n">n_steps</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span>
+        <span class="n">tr_data</span> <span class="o">=</span> <span class="n">tr_data</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="n">nrep</span><span class="p">)</span>
+    
+    <span class="k">return</span> <span class="n">tr_data</span></div>
+
+
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">ML Experiments</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    </div>
+  </body>
+</html>
