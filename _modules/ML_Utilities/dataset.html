@@ -39,8 +39,10 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../prepare_data/prepare_data.html">Getting climate data into TensorFlow</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../simple_autoencoder/autoencoder.html">Getting started - a simple autoencoder</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../autoencoder_perturbations/perturbations.html">Perturbing the simple autoencoder</a></li>
 </ul>
 <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../package/ML_Utilities.html">ML Utilities package</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../credits.html">Small Print</a></li>
 </ul>
 
@@ -70,6 +72,9 @@
 
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
+<span class="kn">from</span> <span class="nn">tensorflow.data</span> <span class="k">import</span> <span class="n">Dataset</span>
+<span class="kn">from</span> <span class="nn">glob</span> <span class="k">import</span> <span class="n">glob</span>
+<span class="kn">import</span> <span class="nn">numpy</span>
 
 <div class="viewcode-block" id="dataset"><a class="viewcode-back" href="../../package/ML_Utilities.html#ML_Utilities.dataset">[docs]</a><span class="k">def</span> <span class="nf">dataset</span><span class="p">(</span><span class="n">purpose</span><span class="o">=</span><span class="s1">&#39;training&#39;</span><span class="p">,</span><span class="n">source</span><span class="o">=</span><span class="s1">&#39;20CR2c&#39;</span><span class="p">,</span><span class="n">variable</span><span class="o">=</span><span class="s1">&#39;prmsl&#39;</span><span class="p">,</span><span class="n">length</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
             <span class="n">shuffle</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span><span class="n">buffer_size</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span><span class="n">reshuffle_each_iteration</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
@@ -87,7 +92,7 @@
 <span class="sd">        reshuffle_each_iteration (:obj:`bool`): Passed to :func:`tf.data.Dataset.shuffle`.</span>
 
 <span class="sd">    Returns:</span>
-<span class="sd">        :obj:`tf.data.Dataset`: Dataset suitable for passing to tf.keras models.</span>
+<span class="sd">        tuple of :obj:`tf.data.Dataset`: Dataset suitable for passing to tf.keras models, and :obj:`int`: length of that dataset.</span>
 
 <span class="sd">    Raises:</span>
 <span class="sd">        ValueError: Necessary data not on disc, need to run :func:`create_dataset` to make it.</span>
@@ -100,18 +105,27 @@
     <span class="n">data_files</span><span class="o">=</span><span class="n">glob</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">/*.tfd&quot;</span> <span class="o">%</span> <span class="n">input_file_dir</span><span class="p">)</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">data_files</span><span class="p">)</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;No prepared data on disc&#39;</span><span class="p">)</span>
-    <span class="n">n_steps</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">training_files</span><span class="p">)</span>
-    <span class="n">data_tfd</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">constant</span><span class="p">(</span><span class="n">training_files</span><span class="p">)</span>
+    <span class="n">n_steps</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">data_files</span><span class="p">)</span>
+    <span class="n">data_tfd</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">constant</span><span class="p">(</span><span class="n">data_files</span><span class="p">)</span>
 
     <span class="c1"># Create TensorFlow Dataset objects from the file names</span>
     <span class="n">tr_data</span> <span class="o">=</span> <span class="n">Dataset</span><span class="o">.</span><span class="n">from_tensor_slices</span><span class="p">(</span><span class="n">data_tfd</span><span class="p">)</span>
     <span class="n">tr_data</span> <span class="o">=</span> <span class="n">tr_data</span><span class="o">.</span><span class="n">shuffle</span><span class="p">(</span><span class="n">buffer_size</span><span class="o">=</span><span class="n">buffer_size</span><span class="p">,</span>
                               <span class="n">reshuffle_each_iteration</span><span class="o">=</span><span class="n">reshuffle_each_iteration</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">length</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">none</span><span class="p">:</span>
+    <span class="n">nrep</span><span class="o">=</span><span class="mi">1</span>
+    <span class="k">if</span> <span class="n">length</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">nrep</span><span class="o">=</span><span class="p">(</span><span class="n">length</span><span class="o">//</span><span class="n">n_steps</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span>
         <span class="n">tr_data</span> <span class="o">=</span> <span class="n">tr_data</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="n">nrep</span><span class="p">)</span>
     
-    <span class="k">return</span> <span class="n">tr_data</span></div>
+    <span class="c1"># We don&#39;t want the file names, we want their contents, so</span>
+    <span class="c1">#  add a map to convert from names to contents.</span>
+    <span class="k">def</span> <span class="nf">load_tensor</span><span class="p">(</span><span class="n">file_name</span><span class="p">):</span>
+        <span class="n">sict</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">read_file</span><span class="p">(</span><span class="n">file_name</span><span class="p">)</span> <span class="c1"># serialised</span>
+        <span class="n">ict</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">parse_tensor</span><span class="p">(</span><span class="n">sict</span><span class="p">,</span><span class="n">numpy</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">ict</span>
+    <span class="n">tr_data</span> <span class="o">=</span> <span class="n">tr_data</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">load_tensor</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="p">(</span><span class="n">tr_data</span><span class="p">,</span><span class="n">n_steps</span><span class="o">*</span><span class="n">nrep</span><span class="p">)</span></div>
 
 
 </pre></div>
