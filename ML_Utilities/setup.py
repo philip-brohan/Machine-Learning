@@ -1,4 +1,4 @@
-"""Setup configuration for the ML-Experiments.
+"""Setup configuration for the ML-Experiments utility package
 
 """
 
@@ -9,19 +9,19 @@ import glob
 
 # Get the long description from the README file
 here = path.abspath(path.dirname(__file__))
-with open(path.join(here, 'README.md'), encoding='utf-8') as f:
+with open(path.join(here, '../README.md'), encoding='utf-8') as f:
     long_description = f.read()
 
 setup(
-    name='ML_Experiments',
+    name='ML_Utilities',
     version='0.0.1',
-    description="Philip's Machine Learning Experiments",
+    description="Utilities for Philip's Machine Learning Experiments",
 
     # From README - see above
     long_description=long_description,
     #long_description_content_type='text/x-rst',
 
-    url='https://brohan.org/ML_Experiments/',
+    url='https://brohan.org/ML_Experiments/ML_Utilities',
 
     author='Philip Brohan',
     author_email='philip.brohan@metofice.gov.uk',
@@ -39,9 +39,10 @@ setup(
     # Keywords for your project. What does your project relate to?
     keywords='weather tensorflow machine-learning climate',
 
-    # Automatically find the software to be included
-    package_dir = {'': 'experiments'},
-    packages=find_packages(where='experiments'),
+    # Find the software to be included
+    #package_dir = {'packages'},
+    packages=['ML_Utilities'],
+    #packages=find_packages(where='packages'),
 
 
     # Other packages that your project depends on.
@@ -53,9 +54,9 @@ setup(
         'numpy>=1.15.2',
         'scipy>=1.1.0',
         'pandas>=0.23.4',
-        'tensorflow>=1.13',
-        'matplotlib>=2.2.3',
-    ],
+        'tensorflow>=1.12',
+        'matplotlib>=2.2.3'
+    ]
 
 
 )

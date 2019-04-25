@@ -10,15 +10,14 @@ This page documents my attempts to learn and use ML methods. I chose to use `Ten
 
    Getting climate data into TensorFlow <prepare_data/prepare_data>
    Getting started - a simple autoencoder <simple_autoencoder/autoencoder>
-
-..
-   A utility package for data provision <package/ML_Utilities>
+   Perturbing the simple autoencoder <autoencoder_perturbations/perturbations>
    
 
 .. toctree::
    :titlesonly:
    :maxdepth: 1
 
+   ML Utilities package <package/ML_Utilities>
    Small Print <credits>
 
 This document is crown copyright (2019). It is published under the terms of the `Open Government Licence <https://www.nationalarchives.gov.uk/doc/open-government-licence/version/2/>`_.

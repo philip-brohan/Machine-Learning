@@ -15,6 +15,9 @@
 
 import os
 import tensorflow as tf
+from tensorflow.data import Dataset
+from glob import glob
+import numpy
 
 def dataset(purpose='training',source='20CR2c',variable='prmsl',length=None,
             shuffle=True,buffer_size=10,reshuffle_each_iteration=False):
@@ -32,7 +35,7 @@ def dataset(purpose='training',source='20CR2c',variable='prmsl',length=None,
         reshuffle_each_iteration (:obj:`bool`): Passed to :func:`tf.data.Dataset.shuffle`.
 
     Returns:
-        :obj:`tf.data.Dataset`: Dataset suitable for passing to tf.keras models.
+        tuple of :obj:`tf.data.Dataset`: Dataset suitable for passing to tf.keras models, and :obj:`int`: length of that dataset.
 
     Raises:
         ValueError: Necessary data not on disc, need to run :func:`create_dataset` to make it.
@@ -45,17 +48,26 @@ def dataset(purpose='training',source='20CR2c',variable='prmsl',length=None,
     data_files=glob("%s/*.tfd" % input_file_dir)
     if len(data_files)==0:
         raise ValueError('No prepared data on disc')
-    n_steps=len(training_files)
-    data_tfd = tf.constant(training_files)
+    n_steps=len(data_files)
+    data_tfd = tf.constant(data_files)
 
     # Create TensorFlow Dataset objects from the file names
     tr_data = Dataset.from_tensor_slices(data_tfd)
     tr_data = tr_data.shuffle(buffer_size=buffer_size,
                               reshuffle_each_iteration=reshuffle_each_iteration)
-    if length is not none:
+    nrep=1
+    if length is not None:
         nrep=(length//n_steps)+1
         tr_data = tr_data.repeat(nrep)
     
-    return tr_data
+    # We don't want the file names, we want their contents, so
+    #  add a map to convert from names to contents.
+    def load_tensor(file_name):
+        sict=tf.read_file(file_name) # serialised
+        ict=tf.parse_tensor(sict,numpy.float32)
+        return ict
+    tr_data = tr_data.map(load_tensor)
+
+    return (tr_data,n_steps*nrep)
 
 
