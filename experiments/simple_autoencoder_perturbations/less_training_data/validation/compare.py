@@ -2,6 +2,7 @@
 
 # Compare a 20CRv2c prmsl field with the same field passed through
 #   the autoencoder.
+# This version looks at the effect of reducing training data.
 
 import tensorflow as tf
 tf.enable_eager_execution()
@@ -66,7 +67,9 @@ result=tf.reshape(result,[91,180])
 pm_original.data=unnormalise(result)
 
 # Same with the modified autoencoder
-model_save_file=("%s/Machine-Learning-experiments/simple_autoencoder_wul/"+
+model_save_file=("%s/Machine-Learning-experiments/"+
+                 "simple_autoencoder_perturbations/"+
+                 "less_training_data/"+
                  "saved_models/Epoch_%04d") % (
                     os.getenv('SCRATCH'),100)
 autoencoder_modified=tf.keras.models.load_model(model_save_file)

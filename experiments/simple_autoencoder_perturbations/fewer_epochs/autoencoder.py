@@ -2,17 +2,15 @@
 
 # Very simple autoencoder for 20CR prmsl fields.
 # Single, fully-connected layer as encoder+decoder, 32 neurons.
-# Very unlikely to work well at all, but this isn't about good
-#  results, it's about getting started. 
 
-# This version uses the ML_Utilities library to clean up the code
+# This version uses only 10 epochs of training
 
 import os
 import tensorflow as tf
 import ML_Utilities
 
 # How many epochs to train for
-n_epochs=100
+n_epochs=10
 
 # Create TensorFlow Dataset object from the prepared training data
 (tr_data,n_steps) = ML_Utilities.dataset(purpose='training',
@@ -56,7 +54,10 @@ autoencoder.fit(x=tr_data, # Get (source,target) pairs from this Dataset
                 verbose=2) # One line per epoch
 
 # Save the model
-save_file="%s/Machine-Learning-experiments/simple_autoencoder_wul/saved_models/Epoch_%04d" % (
+save_file=("%s/Machine-Learning-experiments/"+
+           "simple_autoencoder_perturbations/"+
+           "fewer_epochs/"+
+           "saved_models/Epoch_%04d") % (
                  os.getenv('SCRATCH'),n_epochs)
 if not os.path.isdir(os.path.dirname(save_file)):
     os.makedirs(os.path.dirname(save_file))

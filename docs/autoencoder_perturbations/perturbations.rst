@@ -8,12 +8,12 @@ The first change is a refactoring - move the data provision and normalisation co
 .. toctree::
    :maxdepth: 1
 
-   Refactoring <use_package/autoencoder>
+   Refactoring <refactored/autoencoder>
 
 Then we can start experimenting in earnest:
 
 .. toctree::
    :maxdepth: 1
 
-..
-   Getting climate data into TensorFlow <prepare_data/prepare_data>
+   Less training on the data <fewer_epochs/autoencoder>
+   Less data to train on <less_training_data/autoencoder>

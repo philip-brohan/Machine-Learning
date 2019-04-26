@@ -48,6 +48,8 @@ def dataset(purpose='training',source='20CR2c',variable='prmsl',length=None,
     data_files=glob("%s/*.tfd" % input_file_dir)
     if len(data_files)==0:
         raise ValueError('No prepared data on disc')
+    if length is not None and length<len(data_files):
+        data_files=data_files[:length]
     n_steps=len(data_files)
     data_tfd = tf.constant(data_files)
 

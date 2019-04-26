@@ -48,12 +48,12 @@ Then to use those data in an ML model, it's:
 
     import ML_Utilities
 
-    training_data=ML_Utilities.dataset(purpose='training', 
-                                       source='20CR2c', 
-                                       variable='prmsl')
-    test_data=ML_Utilities.dataset(purpose='test', 
-                                       source='20CR2c', 
-                                       variable='prmsl')
+    (training_data,n_data)=ML_Utilities.dataset(purpose='training', 
+                                                source='20CR2c', 
+                                                variable='prmsl')
+    (test_data,n_test)=ML_Utilities.dataset(purpose='test', 
+                                            source='20CR2c', 
+                                            variable='prmsl')
     # model=(specify here)
 
     model.fit(x=training_data,
