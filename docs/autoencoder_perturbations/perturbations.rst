@@ -17,3 +17,15 @@ Then we can start experimenting in earnest:
 
    Less training on the data <fewer_epochs/autoencoder>
    Less data to train on <less_training_data/autoencoder>
+
+.. toctree::
+   :maxdepth: 1
+
+   Fewer neurons in the hidden layer (8 rather than 32) <fewer_neurons_8/autoencoder>
+   Fewer neurons in the hidden layer (2 rather than 32) <fewer_neurons_2/autoencoder>
+   More neurons in the hidden layer (64 rather than 32) <more_neurons_64/autoencoder>
+
+.. toctree::
+   :maxdepth: 1
+
+   With L1 regularization <regularized/autoencoder>
