@@ -46,18 +46,20 @@
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../prepare_data/prepare_data.html">Getting climate data into TensorFlow</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Getting started - a simple autoencoder</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../autoencoder_perturbations/perturbations.html">Perturbing the simple autoencoder</a></li>
 </ul>
 <ul>
+<li class="toctree-l1"><a class="reference internal" href="../package/ML_Utilities.html">ML Utilities package</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../credits.html">Small Print</a></li>
 </ul>
+<h3><a href="https://github.com/philip-brohan/Machine-Learning">Get the source code</a></h3>
 
-  <div role="note" aria-label="source link">
-    <h3>This Page</h3>
-    <ul class="this-page-menu">
-      <li><a href="../_sources/simple_autoencoder/autoencoder.rst.txt"
-            rel="nofollow">Show Source</a></li>
-    </ul>
-   </div>
+<a href="https://github.com/philip-brohan/Machine-Learning"
+           rel="nofollow">Github source repository</a>
+
+<h3>Found a bug, or have a suggestion?</h3>
+
+Please <a href="https://github.com/philip-brohan/Machine-Learning/issues/new">raise an issue</a>.
         </div>
       </div>
 
@@ -74,7 +76,7 @@
 <dd><ul class="first last simple">
 <li>I used the <a class="reference internal" href="../prepare_data/dataset_from_tensor_files.html"><span class="doc">20CR2c data source</span></a>.</li>
 <li>I changed the activation from <code class="docutils literal notranslate"><span class="pre">relu</span></code> to <code class="docutils literal notranslate"><span class="pre">sigmoid</span></code> as the normalised mslp data is spread around 0 rather than on the range 0-1.</li>
-<li>I changed the loss metric to RMS from <code class="docutils literal notranslate"><span class="pre">binary_crossentropy</span></code> (because I don’t know what binary crossentropy is).</li>
+<li>I changed the loss metric to RMS from <code class="docutils literal notranslate"><span class="pre">binary_crossentropy</span></code> (again, because the data is not on the range 0-1).</li>
 </ul>
 </dd>
 </dl>

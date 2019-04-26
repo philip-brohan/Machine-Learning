@@ -6,7 +6,7 @@ I like the idea of `autoencoders <https://en.wikipedia.org/wiki/Autoencoder>`_ -
 To follow that example, but using 20CR2c MSLP fields instead of MNIST as the target, I made three changes:
    - I used the :doc:`20CR2c data source <../prepare_data/dataset_from_tensor_files>`.
    - I changed the activation from ``relu`` to ``sigmoid`` as the normalised mslp data is spread around 0 rather than on the range 0-1.
-   - I changed the loss metric to RMS from ``binary_crossentropy`` (because I don't know what binary crossentropy is).
+   - I changed the loss metric to RMS from ``binary_crossentropy`` (again, because the data is not on the range 0-1).
 
 .. literalinclude:: ../../experiments/simple_autoencoder/autoencoder.py
 

@@ -45,7 +45,14 @@
 <li class="toctree-l1"><a class="reference internal" href="../../package/ML_Utilities.html">ML Utilities package</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../credits.html">Small Print</a></li>
 </ul>
+<h3><a href="https://github.com/philip-brohan/Machine-Learning">Get the source code</a></h3>
 
+<a href="https://github.com/philip-brohan/Machine-Learning"
+           rel="nofollow">Github source repository</a>
+
+<h3>Found a bug, or have a suggestion?</h3>
+
+Please <a href="https://github.com/philip-brohan/Machine-Learning/issues/new">raise an issue</a>.
         </div>
       </div>
 
@@ -105,6 +112,8 @@
     <span class="n">data_files</span><span class="o">=</span><span class="n">glob</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">/*.tfd&quot;</span> <span class="o">%</span> <span class="n">input_file_dir</span><span class="p">)</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">data_files</span><span class="p">)</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;No prepared data on disc&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">length</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">length</span><span class="o">&lt;</span><span class="nb">len</span><span class="p">(</span><span class="n">data_files</span><span class="p">):</span>
+        <span class="n">data_files</span><span class="o">=</span><span class="n">data_files</span><span class="p">[:</span><span class="n">length</span><span class="p">]</span>
     <span class="n">n_steps</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">data_files</span><span class="p">)</span>
     <span class="n">data_tfd</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">constant</span><span class="p">(</span><span class="n">data_files</span><span class="p">)</span>
 

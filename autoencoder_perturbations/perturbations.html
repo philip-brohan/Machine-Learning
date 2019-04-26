@@ -15,7 +15,9 @@
     <script type="text/javascript" src="../_static/doctools.js"></script>
     <script type="text/javascript" src="../_static/language_data.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
-    <link rel="search" title="Search" href="../search.html" /> 
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Simplifying the simple autoencoder" href="refactored/autoencoder.html" />
+    <link rel="prev" title="Simple autoencoder validation script" href="../simple_autoencoder/validation.html" /> 
   </head><body>
     <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
@@ -26,6 +28,12 @@
         <li class="right" >
           <a href="../py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
+        <li class="right" >
+          <a href="refactored/autoencoder.html" title="Simplifying the simple autoencoder"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="../simple_autoencoder/validation.html" title="Simple autoencoder validation script"
+             accesskey="P">previous</a> |</li>
         <li class="nav-item nav-item-0"><a href="../index.html">ML Experiments</a> &#187;</li> 
       </ul>
     </div>
@@ -35,22 +43,23 @@
               <img class="logo" src="../_static/Weather-Network.png" alt="Logo"/>
             </a></p>
 <h3><a href="../index.html">Table of Contents</a></h3>
-<ul>
+<ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../prepare_data/prepare_data.html">Getting climate data into TensorFlow</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../simple_autoencoder/autoencoder.html">Getting started - a simple autoencoder</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Perturbing the simple autoencoder</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../package/ML_Utilities.html">ML Utilities package</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../credits.html">Small Print</a></li>
 </ul>
+<h3><a href="https://github.com/philip-brohan/Machine-Learning">Get the source code</a></h3>
 
-  <div role="note" aria-label="source link">
-    <h3>This Page</h3>
-    <ul class="this-page-menu">
-      <li><a href="../_sources/autoencoder_perturbations/perturbations.rst.txt"
-            rel="nofollow">Show Source</a></li>
-    </ul>
-   </div>
+<a href="https://github.com/philip-brohan/Machine-Learning"
+           rel="nofollow">Github source repository</a>
+
+<h3>Found a bug, or have a suggestion?</h3>
+
+Please <a href="https://github.com/philip-brohan/Machine-Learning/issues/new">raise an issue</a>.
         </div>
       </div>
 
@@ -65,11 +74,27 @@
 <p>The first change is a refactoring - move the data provision and normalisation code into a module. That will clean up the code somewhat, and should make no substantial difference to the results.</p>
 <div class="toctree-wrapper compound">
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="use_package/autoencoder.html">Refactoring</a></li>
+<li class="toctree-l1"><a class="reference internal" href="refactored/autoencoder.html">Refactoring</a></li>
 </ul>
 </div>
 <p>Then we can start experimenting in earnest:</p>
 <div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="fewer_epochs/autoencoder.html">Less training on the data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="less_training_data/autoencoder.html">Less data to train on</a></li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="fewer_neurons_8/autoencoder.html">Fewer neurons in the hidden layer (8 rather than 32)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fewer_neurons_2/autoencoder.html">Fewer neurons in the hidden layer (2 rather than 32)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="more_neurons_64/autoencoder.html">More neurons in the hidden layer (64 rather than 32)</a></li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="regularized/autoencoder.html">With L1 regularization</a></li>
+</ul>
 </div>
 </div>
 
@@ -88,6 +113,12 @@
         <li class="right" >
           <a href="../py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
+        <li class="right" >
+          <a href="refactored/autoencoder.html" title="Simplifying the simple autoencoder"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="../simple_autoencoder/validation.html" title="Simple autoencoder validation script"
+             >previous</a> |</li>
         <li class="nav-item nav-item-0"><a href="../index.html">ML Experiments</a> &#187;</li> 
       </ul>
     </div>

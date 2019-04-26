@@ -21,7 +21,9 @@ Contributions to this work came from:
 * All contributors to the `TensorFlow <https://www.tensorflow.org/>`_ software.
 * All contributors to the `20th Century Reanalysis <https://www.esrl.noaa.gov/psd/data/20thC_Rean/>`_ dataset.
 * Many people who have written helpful documentation, notably:
+
   - `Vikram Tiwari's tf.keras Autoencoder page <https://www.kaggle.com/vikramtiwari/autoencoders-using-tf-keras-mnist>`_
+
 * The weather icons used in the logo image are by `Ashley Jager <https://www.npmjs.com/package/weather-underground-icons>`_.
  
 Note that appearance on this list does not mean that the person or organisation named endorses this work, agrees with any of it, or even knows of its existence.
