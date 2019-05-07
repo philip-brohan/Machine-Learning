@@ -31,7 +31,7 @@ ic=ic.extract(iris.Constraint(member=1))
 model_save_file=(("%s/Machine-Learning-experiments/"+
                   "simple_autoencoder_introspection/single_neuron/"+
                  "saved_models/Epoch_%04d")) % (
-                     os.getenv('SCRATCH'),500)
+                     os.getenv('SCRATCH'),100)
 autoencoder=tf.keras.models.load_model(model_save_file)
 
 # Make a comparison plot - Input, hidden, and output weights

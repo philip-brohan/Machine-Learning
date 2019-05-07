@@ -2,9 +2,10 @@
 
 # Very simple autoencoder for 20CR prmsl fields.
 # Single, fully-connected layer as encoder+decoder, 32 neurons.
+# Very unlikely to work well at all, but this isn't about good
+#  results, it's about getting started. 
 
-# This version uses only 8 neurons in the hidden layer
-#   (instead of 32).
+# Only 9 neurons in the hdden layer to simplify introspection.
 
 import os
 import tensorflow as tf
@@ -35,8 +36,9 @@ tr_test = tr_test.map(to_model)
 
 # Input placeholder - treat data as 1d
 original = tf.keras.layers.Input(shape=(91*180,))
-# Encoding layer 8-neuron fully-connected
-encoded = tf.keras.layers.Dense(8, activation='tanh')(original)
+# Encoding layer: fully-connected
+encoded = tf.keras.layers.Dense(9, activation='tanh')(original)#,
+#               activity_regularizer=tf.keras.regularizers.l1(10e-5))(original)
 # Output layer - same shape as input
 decoded = tf.keras.layers.Dense(91*180, activation='tanh')(encoded)
 
@@ -56,8 +58,7 @@ autoencoder.fit(x=tr_data, # Get (source,target) pairs from this Dataset
 
 # Save the model
 save_file=("%s/Machine-Learning-experiments/"+
-           "simple_autoencoder_perturbations/"+
-           "fewer_neurons_8/"+
+           "simple_autoencoder_introspection/9_neurons/"+
            "saved_models/Epoch_%04d") % (
                  os.getenv('SCRATCH'),n_epochs)
 if not os.path.isdir(os.path.dirname(save_file)):

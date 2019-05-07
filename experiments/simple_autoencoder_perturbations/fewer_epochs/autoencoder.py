@@ -35,9 +35,9 @@ tr_test = tr_test.map(to_model)
 # Input placeholder - treat data as 1d
 original = tf.keras.layers.Input(shape=(91*180,))
 # Encoding layer 32-neuron fully-connected
-encoded = tf.keras.layers.Dense(32, activation='sigmoid')(original)
+encoded = tf.keras.layers.Dense(32, activation='tanh')(original)
 # Output layer - same shape as input
-decoded = tf.keras.layers.Dense(91*180, activation='sigmoid')(encoded)
+decoded = tf.keras.layers.Dense(91*180, activation='tanh')(encoded)
 
 # Model relating original to output
 autoencoder = tf.keras.models.Model(original, decoded)

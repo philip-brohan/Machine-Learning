@@ -24,7 +24,7 @@ import cartopy
 import cartopy.crs as ccrs
 
 # Where on the plot to put each axes
-def axes_geom(layer=0,channel=0,nchannels=4):
+def axes_geom(layer=0,channel=0,nchannels=9):
      if layer==0: 
          base=[0.0,0.5,1.0,0.5]
      else:
@@ -41,7 +41,7 @@ def axes_geom(layer=0,channel=0,nchannels=4):
      return geom
 
 # Plot a single set of weights
-def plot_weights(weights,layer=0,channel=0,nchannels=4):
+def plot_weights(weights,layer=0,channel=0,nchannels=9):
     ax_input=fig.add_axes(axes_geom(layer=layer,
                                     channel=channel,
                                     nchannels=nchannels),
@@ -77,7 +77,7 @@ ic=ic.extract(iris.Constraint(member=1))
 
 # Get the 4 neuron autoencoder
 model_save_file=(("%s/Machine-Learning-experiments/"+
-                  "simple_autoencoder_introspection/4_neurons/"+
+                  "simple_autoencoder_introspection/9_neurons/"+
                  "saved_models/Epoch_%04d")) % (
                      os.getenv('SCRATCH'),100)
 autoencoder=tf.keras.models.load_model(model_save_file)
@@ -98,13 +98,13 @@ projection=ccrs.RotatedPole(pole_longitude=180.0, pole_latitude=90.0)
 extent=[-180,180,-90,90]
 
 for layer in [0,2]:
-    for channel in range(4):
+    for channel in range(9):
         w_in=ic.copy()
         if layer==0:
             w_in.data=autoencoder.get_weights()[0][:,channel].reshape(ic.data.shape)
         else:
             w_in.data=autoencoder.get_weights()[2][channel,:].reshape(ic.data.shape)
-        plot_weights(w_in,layer=layer,channel=channel,nchannels=4)
+        plot_weights(w_in,layer=layer,channel=channel,nchannels=9)
         
 # Render the figure as a png
 fig.savefig("weights.png")

@@ -109,14 +109,14 @@ land_img_post=ax_post.background_img(name='GreyT', resolution='low')
 mg.pressure.plot(ax_orig,ic,
                  scale=0.01,
                  resolution=0.25,
-                 levels=numpy.arange(870,1050,10),
+                 levels=numpy.arange(870,1050,7),
                  colors='blue',
                  label=True,
                  linewidths=2)
 mg.pressure.plot(ax_post,pm,
                  scale=0.01,
                  resolution=0.25,
-                 levels=numpy.arange(870,1050,10),
+                 levels=numpy.arange(870,1050,7),
                  colors='blue',
                  label=True,
                  linewidths=2)
