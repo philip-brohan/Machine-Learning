@@ -52,8 +52,13 @@ if args.source=='20CR2c':
                  version='2c')
     ic=ic.extract(iris.Constraint(member=args.member))
     # Normalise to mean=0, sd=1 (approx)
-    ic.data -= 101325
-    ic.data /= 3000
+    if args.variable=='prmsl':
+        ic.data -= 101325
+        ic.data /= 3000
+    elif args.variable=='air.2m':
+        ic.data -= 280
+        ic.data /= 50
+
 else:
     raise ValueError('Source %s is not supported' % args.source)
 

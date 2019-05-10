@@ -34,6 +34,11 @@ def get_normalise_function(source='20CR2c',variable='prmsl'):
                 x -= 101325
                 x /= 3000
                 return x
+        elif variable=='air.2m':
+            def normalise(x):
+                x -= 280
+                x /= 50
+                return x
         else:
             raise ValueError("Don't know how to normalise %s" % variable)
     else:
@@ -61,6 +66,11 @@ def get_unnormalise_function(source='20CR2c',variable='prmsl'):
             def unnormalise(x):
                 x *= 3000
                 x += 101325
+                return x
+        elif variable=='air.2m':
+            def unnormalise(x):
+                x *= 50
+                x += 280
                 return x
         else:
             raise ValueError("Don't know how to unnormalise %s" % variable)
