@@ -14,7 +14,7 @@ import numpy
 import pickle
 
 # How many times will we train on each training data point
-n_epochs=10
+n_epochs=100
 
 # File names for the serialised tensors to train on
 input_file_dir=("%s/Machine-Learning-experiments/datasets/20CR2c/prmsl/training/" %
