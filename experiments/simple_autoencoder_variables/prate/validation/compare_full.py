@@ -23,29 +23,28 @@ import cartopy
 import cartopy.crs as ccrs
 
 # Get the 20CR data
-ic=twcr.load('prmsl',datetime.datetime(2009,3,12,6),
+ic=twcr.load('prate',datetime.datetime(2009,3,12,6),
                            version='2c')
 ic=ic.extract(iris.Constraint(member=1))
 
 # Get the autoencoder
 model_save_file=("%s/Machine-Learning-experiments/"+
-           "simple_autoencoder_activations/linear/"+
+           "simple_autoencoder_variables/prate/"+
            "saved_models/Epoch_%04d") % (
-                 os.getenv('SCRATCH'),300)
+                 os.getenv('SCRATCH'),100)
 autoencoder=tf.keras.models.load_model(model_save_file)
 # Get the order of the hidden weights - most to least important
 order=numpy.argsort(numpy.abs(autoencoder.get_weights()[1]))[::-1]
 
-# Normalisation - Pa to mean=0, sd=1 - and back
+# Normalisation - Weird - because precip
 def normalise(x):
-   x -= 101325
-   x /= 3000
-   return x
-
-def unnormalise(x):
-   x *= 3000
-   x += 101325
-   return x
+    x = x+numpy.random.uniform(0,numpy.exp(-11),x.shape)
+    x = numpy.log(x)
+    x += 11.5
+    x /= 3
+    #x = numpy.maximum(x,-7)
+    #x = numpy.minimum(x,7)
+    return x
 
 fig=Figure(figsize=(19.2,10.8),  # 1920x1080, HD
            dpi=100,
@@ -68,11 +67,12 @@ matplotlib.rc('image',aspect='auto')
 # Run the data through the autoencoder and convert back to iris cube
 pm=ic.copy()
 pm.data=normalise(pm.data)
+ic.data=pm.data
 ict=tf.convert_to_tensor(pm.data, numpy.float32)
-ict=tf.reshape(ict,[1,91*180]) # ????
+ict=tf.reshape(ict,[1,94*192]) # ????
 result=autoencoder.predict_on_batch(ict)
-result=tf.reshape(result,[91,180])
-pm.data=unnormalise(result)
+result=tf.reshape(result,[94,192])
+pm.data=result
 
 # Background, grid and land
 ax_map.background_patch.set_facecolor((0.88,0.88,0.88,1))
@@ -81,17 +81,17 @@ land_img_orig=ax_map.background_img(name='GreyT', resolution='low')
 
 # original pressures as red contours
 mg.pressure.plot(ax_map,ic,
-                 scale=0.01,
+                 scale=1,
                  resolution=0.25,
-                 levels=numpy.arange(870,1050,7),
+                 levels=numpy.arange(0.5,3,0.25),
                  colors='red',
                  label=False,
                  linewidths=1)
 # Encoded pressures as blue contours
 mg.pressure.plot(ax_map,pm,
-                 scale=0.01,
+                 scale=1,
                  resolution=0.25,
-                 levels=numpy.arange(870,1050,7),
+                 levels=numpy.arange(0.5,3,0.25),
                  colors='blue',
                  label=False,
                  linewidths=1)
@@ -174,9 +174,9 @@ for layer in [0,2]:
 
 # Plot the training history
 history_save_file=("%s/Machine-Learning-experiments/"+
-                   "simple_autoencoder_activations/linear/"+
-                   "saved_models/history_to_%04d.pkl") % (
-                      os.getenv('SCRATCH'),300)
+              "simple_autoencoder_variables/prate/"+
+              "saved_models/history_to_%04d.pkl") % (
+                 os.getenv('SCRATCH'),100)
 history=pickle.load( open( history_save_file, "rb" ) )
 ax=fig.add_axes([0.55,0.05,0.425,0.4])
 # Axes ranges from data

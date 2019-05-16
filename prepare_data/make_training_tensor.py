@@ -58,6 +58,15 @@ if args.source=='20CR2c':
     elif args.variable=='air.2m':
         ic.data -= 280
         ic.data /= 50
+    elif args.variable=='prate':
+        pass
+        # Don't normalise prate until later
+        #ic.data = ic.data+numpy.random.uniform(0,numpy.exp(-11),
+        #                                           ic.data.shape)
+        #ic.data = numpy.log(ic.data)
+        #ic.data += 11.5
+        #ic.data = numpy.maximum(ic.data,-7)
+        #ic.data = numpy.minimum(ic.data,7)
 
 else:
     raise ValueError('Source %s is not supported' % args.source)
