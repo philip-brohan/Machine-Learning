@@ -24,6 +24,8 @@ tr_data = tr_data.repeat(n_epochs)
 #  (source,target) for model
 def to_model(ict):
    ict=tf.reshape(ict,[1,91*180])
+   #ict=ict/3
+   #ict=ict+0.5
    return(ict,ict)
 tr_data = tr_data.map(to_model)
 

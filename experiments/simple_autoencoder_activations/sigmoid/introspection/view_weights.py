@@ -77,11 +77,11 @@ ic=twcr.load('prmsl',datetime.datetime(1969,3,12,6),
                            version='2c')
 ic=ic.extract(iris.Constraint(member=1))
 
-# Get the 9 neuron autoencoder
+# Get the  autoencoder
 model_save_file=(("%s/Machine-Learning-experiments/"+
                   "simple_autoencoder_activations/sigmoid/"+
                  "saved_models/Epoch_%04d")) % (
-                     os.getenv('SCRATCH'),100)
+                      os.getenv('SCRATCH'),20)
 autoencoder=tf.keras.models.load_model(model_save_file)
 
 # Get the order of the hidden weights - most to least important
