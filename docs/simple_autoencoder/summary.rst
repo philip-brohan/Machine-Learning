@@ -1,13 +1,9 @@
-Simplifying the simple autoencoder
-==================================
+Simple autoencoder validation summary
+=====================================
 
-Most of the :doc:`simple autoencoder script <../../simple_autoencoder/autoencoder>` is code to handle data input. So I created a :doc:`ML_Utilities package <../../package/ML_Utilities>` to handle that (and also to standardise data normalisation). This simplifies the autoencoder script considerably.
+For a quick overview of model quality, we can combine a view of the model weights, a validation comparison, and the training rate, into a single figure.
 
-.. literalinclude:: ../../../experiments/simple_autoencoder_perturbations/refactored/autoencoder.py
-
-That change should make almost no difference to the results, and indeed it doesn't (:doc:`see original <../../simple_autoencoder/summary>`):
-
-.. figure:: ../../../experiments/simple_autoencoder_perturbations/refactored/validation/comparison_full.png
+.. figure:: ../../experiments/simple_autoencoder/validation/comparison_full.png
    :width: 95%
    :align: center
    :figwidth: 95%
@@ -16,8 +12,7 @@ That change should make almost no difference to the results, and indeed it doesn
    Top right, a sample pressure field: Original in blue, after passing through the autoencoder in red.
    Bottom right, training progress: Loss v. no. of training epochs.
 
-
 Script to make the figure
 -------------------------
 
-.. literalinclude:: ../../../experiments/simple_autoencoder_perturbations/refactored/validation/compare_full.py
+.. literalinclude:: ../../experiments/simple_autoencoder/validation/compare_full.py

@@ -6,7 +6,7 @@ I like the idea of `autoencoders <https://en.wikipedia.org/wiki/Autoencoder>`_ -
 To follow that example, but using 20CR2c MSLP fields instead of MNIST as the target, I made three changes:
    - I used the :doc:`20CR2c data source <../prepare_data/dataset_from_tensor_files>`.
    - I changed the activation from ``relu`` to ``tanh`` as the normalised mslp data is spread around 0 rather than on the range 0-1.
-   - I changed the loss metric to RMS from ``binary_crossentropy`` (again, because the data is not on the range 0-1).
+   - I changed the loss metric to RMS from ``binary_crossentropy`` (because this is a regression problem, not a classification).
 
 .. literalinclude:: ../../experiments/simple_autoencoder/autoencoder.py
 
@@ -43,3 +43,4 @@ So it does work, though not well enough to be useful. Success is then *merely* a
 
    validation
    weights
+   summary
