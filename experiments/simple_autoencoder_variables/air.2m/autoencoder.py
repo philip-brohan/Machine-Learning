@@ -13,7 +13,7 @@ import ML_Utilities
 import pickle
 
 # How many epochs to train for
-n_epochs=300
+n_epochs=100
 
 # Create TensorFlow Dataset object from the prepared training data
 (tr_data,n_steps) = ML_Utilities.dataset(purpose='training',
@@ -38,8 +38,7 @@ tr_test = tr_test.map(to_model)
 # Input placeholder - treat data as 1d
 original = tf.keras.layers.Input(shape=(18048,))
 # Encoding layer 32-neuron fully-connected
-encoded = tf.keras.layers.Dense(32, activation='tanh',
-               activity_regularizer=tf.keras.regularizers.l1(10e-5))(original)
+encoded = tf.keras.layers.Dense(32, activation='tanh',)(original)
 # Output layer - same shape as input
 decoded = tf.keras.layers.Dense(18048, activation='tanh')(encoded)
 
@@ -52,7 +51,7 @@ autoencoder.compile(optimizer='adadelta', loss='mean_squared_error')
 # Train the autoencoder
 history=autoencoder.fit(x=tr_data, # Get (source,target) pairs from this Dataset
                 epochs=n_epochs,
-                steps_per_epoch=n_steps//10,
+                steps_per_epoch=n_steps,
                 validation_data=tr_test,
                 validation_steps=test_steps,
                 verbose=2) # One line per epoch

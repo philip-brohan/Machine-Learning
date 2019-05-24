@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+G#!/usr/bin/env python
 
 # Compare a 20CRv2c prmsl field with the same field passed through
 #   the autoencoder.
@@ -67,7 +67,7 @@ pm_original.data=unnormalise(result)
 
 # Same with the modified autoencoder
 model_save_file=(("%s/Machine-Learning-experiments/"+
-                  "simple_autoencoder_activations/softplus/"+
+                  "simple_autoencoder_activations/LeakyReLU/"+
                  "saved_models/Epoch_%04d")) % (
                     os.getenv('SCRATCH'),100)
 autoencoder_modified=tf.keras.models.load_model(model_save_file)

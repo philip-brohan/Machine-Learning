@@ -29,3 +29,8 @@ Then we can start experimenting in earnest:
    :maxdepth: 1
 
    With L1 regularization <regularized/autoencoder>
+
+.. toctree::
+   :maxdepth: 1
+
+   With linear activations (rather than tanh) <activations/linear/autoencoder>

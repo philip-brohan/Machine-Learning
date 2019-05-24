@@ -5,19 +5,19 @@ The :doc:`simple autoencoder <../../simple_autoencoder/autoencoder>` has 32 neur
 
 .. literalinclude:: ../../../experiments/simple_autoencoder_perturbations/regularized/autoencoder.py
 
-We already know, however, that this model is not overfitting badly, because we have both a training and a test dataset, and the loss metrics are about the same. If the model were overfitting, the validation loss would be much bigger than the training loss. Regularisation should slightly degrade the model fit to the training data, and it does (training loss metric at 100 epochs goes from 0.1953 to 0.1985), and it might help the fit to the validation data if the validation loss were notably worse than the training loss, but here it isn't, so regularisation has little effect (validation loss metric at 100 epochs goes from 0.1910 to 0.1942):
+We already know, however, that this model is not overfitting badly, because we have both a training and a test dataset, and the loss metrics are about the same. If the model were overfitting, the validation loss would be much bigger than the training loss. So here regularization has little effect (:doc:`see original <../../simple_autoencoder/summary>`):
 
-.. figure:: ../../../experiments/simple_autoencoder_perturbations/regularized/validation/comparison_2009-03-12:06.png
+.. figure:: ../../../experiments/simple_autoencoder_perturbations/regularized/validation/comparison_full.png
    :width: 95%
    :align: center
    :figwidth: 95%
 
-   MSLP contours from 20CR2c for 2009-03-12:06. Original in top panel - after passing through the original simple autoencoder in middle panel, and after passing through the regularized autoencoder in bottom panel. Note that the contour spacings are different between the panels.
+   On the left, the model weights: The boxplot in the centre shows the weights associated with each neuron in the hidden layer, arranged in order, largest to smallest. Negative weights have been converted to positive (and the sign of the associated output layer weights switched accordingly). The colourmaps on top are the weights, for each hidden layer neuron, for each input field location (so a lat:lon map). They are aranged in the same order as the hidden layer weights (so if hidden-layer neuron 3 has the largest weight, the input layer weights for neuron 3 are shown at top left). The colourmaps on the bottom are the output layer weights, arranged in the same way.
+   Top right, a sample pressure field: Original in red, after passing through the autoencoder in blue.
+   Bottom right, training progress: Loss v. no. of training epochs.
 
-|
 
+Script to make the figure
+-------------------------
 
-.. toctree::
-   :maxdepth: 1
-
-   validation
+.. literalinclude:: ../../../experiments/simple_autoencoder_perturbations/regularized/validation/compare_full.py

@@ -10,6 +10,7 @@
 import os
 import tensorflow as tf
 import ML_Utilities
+import pickle
 
 # How many epochs to train for
 n_epochs=100
@@ -24,8 +25,6 @@ tr_data = tr_data.repeat(n_epochs)
 #  (source,target) for model
 def to_model(ict):
    ict=tf.reshape(ict,[1,91*180])
-   #ict=ict/3
-   #ict=ict+0.5
    return(ict,ict)
 tr_data = tr_data.map(to_model)
 
@@ -50,7 +49,7 @@ autoencoder = tf.keras.models.Model(original, decoded)
 autoencoder.compile(optimizer='adadelta', loss='mean_squared_error')
 
 # Train the autoencoder
-autoencoder.fit(x=tr_data, # Get (source,target) pairs from this Dataset
+history=autoencoder.fit(x=tr_data,
                 epochs=n_epochs,
                 steps_per_epoch=n_steps,
                 validation_data=tr_test,
@@ -65,3 +64,9 @@ save_file=("%s/Machine-Learning-experiments/"+
 if not os.path.isdir(os.path.dirname(save_file)):
     os.makedirs(os.path.dirname(save_file))
 tf.keras.models.save_model(autoencoder,save_file)
+history_file=("%s/Machine-Learning-experiments/"+
+              "simple_autoencoder_activations/"+
+              "sigmoid/"+
+              "saved_models/history_to_%04d.pkl") % (
+                 os.getenv('SCRATCH'),n_epochs)
+pickle.dump(history.history, open(history_file, "wb"))

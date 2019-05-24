@@ -6,8 +6,6 @@ import tensorflow as tf
 tf.enable_eager_execution()
 import numpy
 
-import ML_Utilities
-
 import IRData.twcr as twcr
 import iris
 import datetime
@@ -25,25 +23,30 @@ import cartopy
 import cartopy.crs as ccrs
 
 # Get the 20CR data
-ic=twcr.load('air.2m',datetime.datetime(2009,3,12,6),
+ic=twcr.load('prmsl',datetime.datetime(2009,3,12,6),
                            version='2c')
 ic=ic.extract(iris.Constraint(member=1))
 
-# Normalisation - K to mean=0, sd=1 - and back
-normalise=ML_Utilities.get_normalise_function(source='20CR2c',
-                                              variable='air.2m')
-unnormalise=ML_Utilities.get_unnormalise_function(source='20CR2c',
-                                                  variable='air.2m')
-
 # Get the autoencoder
 model_save_file=("%s/Machine-Learning-experiments/"+
-           "simple_autoencoder_variables/air.2m/"+
-           "saved_models/Epoch_%04d") % (
-                 os.getenv('SCRATCH'),100)
+                  "simple_autoencoder_perturbations/"+
+                  "more_neurons_64/"+
+                  "saved_models/Epoch_%04d") % (
+                    os.getenv('SCRATCH'),100)
 autoencoder=tf.keras.models.load_model(model_save_file)
 # Get the order of the hidden weights - most to least important
 order=numpy.argsort(numpy.abs(autoencoder.get_weights()[1]))[::-1]
 
+# Normalisation - Pa to mean=0, sd=1 - and back
+def normalise(x):
+   x -= 101325
+   x /= 3000
+   return x
+
+def unnormalise(x):
+   x *= 3000
+   x += 101325
+   return x
 
 fig=Figure(figsize=(19.2,10.8),  # 1920x1080, HD
            dpi=100,
@@ -67,9 +70,9 @@ matplotlib.rc('image',aspect='auto')
 pm=ic.copy()
 pm.data=normalise(pm.data)
 ict=tf.convert_to_tensor(pm.data, numpy.float32)
-ict=tf.reshape(ict,[1,18048]) # ????
+ict=tf.reshape(ict,[1,91*180]) # ????
 result=autoencoder.predict_on_batch(ict)
-result=tf.reshape(result,ic.data.shape)
+result=tf.reshape(result,[91,180])
 pm.data=unnormalise(result)
 
 # Background, grid and land
@@ -79,17 +82,17 @@ land_img_orig=ax_map.background_img(name='GreyT', resolution='low')
 
 # original pressures as red contours
 mg.pressure.plot(ax_map,ic,
-                 scale=1.0,
+                 scale=0.01,
                  resolution=0.25,
-                 levels=numpy.arange(270,320,10),
+                 levels=numpy.arange(870,1050,7),
                  colors='red',
                  label=False,
                  linewidths=1)
 # Encoded pressures as blue contours
 mg.pressure.plot(ax_map,pm,
-                 scale=1.0,
+                 scale=0.01,
                  resolution=0.25,
-                 levels=numpy.arange(270,320,10),
+                 levels=numpy.arange(870,1050,7),
                  colors='blue',
                  label=False,
                  linewidths=1)
@@ -151,7 +154,7 @@ def plot_hidden(weights):
      ax.bar(x=range(len(weights)),
             height=numpy.abs(weights[order]),
             color='grey',
-            tick_label=order)
+            tick_label=' ')
 
 plot_hidden(autoencoder.get_weights()[1])
 for layer in [0,2]:
@@ -166,15 +169,16 @@ for layer in [0,2]:
         else:
             w_in.data=w_l[channel,:].reshape(ic.data.shape)
         w_in.data *= numpy.sign(autoencoder.get_weights()[1][channel])
-        plot_weights(w_in,layer=layer,channel=count,nchannels=36,
+        plot_weights(w_in,layer=layer,channel=count,nchannels=64,
                      vmin=vmin,vmax=vmax)
         count += 1
 
 # Plot the training history
 history_save_file=("%s/Machine-Learning-experiments/"+
-                   "simple_autoencoder_variables/air.2m/"+
+                   "simple_autoencoder_perturbations/"+
+                   "more_neurons_64/"+
                    "saved_models/history_to_%04d.pkl") % (
-                      os.getenv('SCRATCH'),100)
+                    os.getenv('SCRATCH'),100)
 history=pickle.load( open( history_save_file, "rb" ) )
 ax=fig.add_axes([0.55,0.05,0.425,0.4])
 # Axes ranges from data

@@ -5,7 +5,7 @@
 # Very unlikely to work well at all, but this isn't about good
 #  results, it's about getting started. 
 
-# This version uses elu activations
+# This version uses leaky relu activations
 
 import os
 import tensorflow as tf
@@ -37,13 +37,15 @@ tr_test = tr_test.map(to_model)
 
 # Input placeholder - treat data as 1d
 original = tf.keras.layers.Input(shape=(91*180,))
+e_activate=tf.keras.layers.LeakyReLU()(original)
 # Encoding layer 32-neuron fully-connected
-encoded = tf.keras.layers.Dense(32, activation='elu')(original)
+encoded = tf.keras.layers.Dense(32)(e_activate)
+d_activate=tf.keras.layers.LeakyReLU()(encoded)
 # Output layer - same shape as input
-decoded = tf.keras.layers.Dense(91*180, activation='elu')(encoded)
-
+decoded = tf.keras.layers.Dense(91*180)(d_activate)
 # Model relating original to output
 autoencoder = tf.keras.models.Model(original, decoded)
+
 # Choose a loss metric to minimise (RMS)
 #  and an optimiser to use (adadelta)
 autoencoder.compile(optimizer='adadelta', loss='mean_squared_error')
@@ -58,7 +60,7 @@ history=autoencoder.fit(x=tr_data,
 
 # Save the model
 save_file=("%s/Machine-Learning-experiments/"+
-           "simple_autoencoder_activations/elu/"+
+           "simple_autoencoder_activations/LeakyReLU/"+
            "saved_models/Epoch_%04d") % (
                  os.getenv('SCRATCH'),n_epochs)
 if not os.path.isdir(os.path.dirname(save_file)):
@@ -66,7 +68,7 @@ if not os.path.isdir(os.path.dirname(save_file)):
 tf.keras.models.save_model(autoencoder,save_file)
 history_file=("%s/Machine-Learning-experiments/"+
               "simple_autoencoder_activations/"+
-              "elu/"+
+              "LeakyReLU/"+
               "saved_models/history_to_%04d.pkl") % (
                  os.getenv('SCRATCH'),n_epochs)
 pickle.dump(history.history, open(history_file, "wb"))

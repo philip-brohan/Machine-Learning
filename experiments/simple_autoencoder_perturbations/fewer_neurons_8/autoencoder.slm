@@ -1,0 +1,11 @@
+#!/bin/ksh -l
+
+#SBATCH --output=autoencoder.out
+#SBATCH --qos=normal
+#SBATCH --ntasks=4
+#SBATCH --ntasks-per-core=2
+#SBATCH --mem=5000
+#SBATCH --time=20:00
+
+./autoencoder.py
+

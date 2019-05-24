@@ -5,19 +5,20 @@ The original :doc:`simple autoencoder<../../simple_autoencoder/autoencoder>` had
 
 .. literalinclude:: ../../../experiments/simple_autoencoder_perturbations/fewer_neurons_8/autoencoder.py
 
-It should train faster, and it does; otherwise, I was not sure what to expect except that it should be notably worse in some respect. Actually, it seems little different from the 32-neuron version. The validation loss at 100 epochs is bigger (0.21 for 8 neurons instead of 0.19 for 32), but the effect is small.:
+It should train faster, and it does; it should be noticeably less capable than the original 32-neuron version, and it is (:doc:`see original <../../simple_autoencoder/summary>`):
 
-.. figure:: ../../../experiments/simple_autoencoder_perturbations/fewer_neurons_8/validation/comparison_2009-03-12:06.png
+.. figure:: ../../../experiments/simple_autoencoder_perturbations/fewer_neurons_8/validation/comparison_full.png
    :width: 95%
    :align: center
    :figwidth: 95%
 
-   MSLP contours from 20CR2c for 2009-03-12:06. Original in top panel - after passing through the original simple autoencoder in middle panel, and after passing through the autoencoder with fewer neurons (8 rather than 32) in bottom panel. Note that the contour spacings are different between the panels.
+   On the left, the model weights: The boxplot in the centre shows the weights associated with each neuron in the hidden layer, arranged in order, largest to smallest. Negative weights have been converted to positive (and the sign of the associated output layer weights switched accordingly). The colourmaps on top are the weights, for each hidden layer neuron, for each input field location (so a lat:lon map). They are aranged in the same order as the hidden layer weights (so if hidden-layer neuron 3 has the largest weight, the input layer weights for neuron 3 are shown at top left). The colourmaps on the bottom are the output layer weights, arranged in the same way.
+   Top right, a sample pressure field: Original in red, after passing through the autoencoder in blue.
+   Bottom right, training progress: Loss v. no. of training epochs.
 
-|
 
+Script to make the figure
+-------------------------
 
-.. toctree::
-   :maxdepth: 1
+.. literalinclude:: ../../../experiments/simple_autoencoder_perturbations/fewer_neurons_8/validation/compare_full.py
 
-   validation
