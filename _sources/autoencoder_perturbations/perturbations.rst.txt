@@ -46,3 +46,8 @@ Then we can start experimenting in earnest:
 
    With video diagnostics <video/video>
 
+.. toctree::
+   :maxdepth: 1
+
+   Trained on 2m air temperature (rather than MSLP) <variables/air.2m/autoencoder>
+   Trained on precipitation <variables/prate/autoencoder>
