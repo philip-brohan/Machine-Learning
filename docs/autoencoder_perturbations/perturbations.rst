@@ -44,5 +44,5 @@ Then we can start experimenting in earnest:
 .. toctree::
    :maxdepth: 1
 
-   With video diagnostics <video/autoencoder>
+   With video diagnostics <video/video>
 
