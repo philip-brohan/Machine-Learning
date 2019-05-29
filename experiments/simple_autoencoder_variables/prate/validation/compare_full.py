@@ -38,10 +38,12 @@ order=numpy.argsort(numpy.abs(autoencoder.get_weights()[1]))[::-1]
 
 # Normalisation - Weird - because precip
 def normalise(x):
-    x = x+numpy.random.uniform(0,numpy.exp(-11),x.shape)
-    x = numpy.log(x)
-    x += 11.5
-    x /= 3
+    x = numpy.sqrt(x)
+    x *= 100
+    #x = x+numpy.random.uniform(0,numpy.exp(-11),x.shape)
+    #x = numpy.log(x)
+    #x += 11.5
+    #x /= 3
     #x = numpy.maximum(x,-7)
     #x = numpy.minimum(x,7)
     return x
@@ -83,7 +85,7 @@ land_img_orig=ax_map.background_img(name='GreyT', resolution='low')
 mg.pressure.plot(ax_map,ic,
                  scale=1,
                  resolution=0.25,
-                 levels=numpy.arange(0.5,3,0.25),
+                 levels=numpy.arange(0.5,3.5,0.5),
                  colors='red',
                  label=False,
                  linewidths=1)
@@ -91,7 +93,7 @@ mg.pressure.plot(ax_map,ic,
 mg.pressure.plot(ax_map,pm,
                  scale=1,
                  resolution=0.25,
-                 levels=numpy.arange(0.5,3,0.25),
+                 levels=numpy.arange(0.5,3.5,0.5),
                  colors='blue',
                  label=False,
                  linewidths=1)
@@ -176,7 +178,7 @@ for layer in [0,2]:
 history_save_file=("%s/Machine-Learning-experiments/"+
               "simple_autoencoder_variables/prate/"+
               "saved_models/history_to_%04d.pkl") % (
-                 os.getenv('SCRATCH'),100)
+                  os.getenv('SCRATCH'),100)
 history=pickle.load( open( history_save_file, "rb" ) )
 ax=fig.add_axes([0.55,0.05,0.425,0.4])
 # Axes ranges from data

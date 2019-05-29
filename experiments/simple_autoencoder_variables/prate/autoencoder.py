@@ -20,7 +20,8 @@ import pickle
 n_epochs=100
 
 # File names for the serialised tensors to train on
-input_file_dir=("%s/Machine-Learning-experiments/datasets/20CR2c/prate/training/" %
+input_file_dir=(("%s/Machine-Learning-experiments/"+
+                 "datasets/20CR2c/prate/training/") %
                    os.getenv('SCRATCH'))
 training_files=glob("%s/*.tfd" % input_file_dir)
 n_steps=len(training_files)
@@ -45,11 +46,13 @@ def load_tensor(file_name):
 tr_data = tr_data.map(load_tensor)
 
 def normalise(ic):
-    ic = ic+numpy.random.uniform(0,numpy.exp(-11),
-                                               ic.shape)
-    ic = tf.math.log(ic)
-    ic += 11.5
-    ic /= 3
+    ic = tf.math.sqrt(ic)
+    ic *= 100
+    #ic = ic+numpy.random.uniform(0,numpy.exp(-11),
+    #                                           ic.shape)
+    #ic = tf.math.log(ic)
+    #ic += 11.5
+    #ic /= 3
     #ic = tf.math.maximum(ic,-7)
     #ic = tf.math.minimum(ic,7)
     return ic
@@ -57,9 +60,8 @@ def normalise(ic):
 # Also need to normalise the data, reshape the data to linear, and produce a tuple
 #  (source,target) for model
 def to_model(ict):
-   ict=tf.reshape(ict,[1,94*192])
-   return(normalise(ict),
-          normalise(ict))
+   ict=normalise(tf.reshape(ict,[1,94*192]))
+   return(ict,ict)
 tr_data = tr_data.map(to_model)
 
 # Make similar dataset for testing
@@ -79,9 +81,9 @@ test_data = test_data.map(to_model)
 # Input placeholder - treat data as 1d
 original = tf.keras.layers.Input(shape=(94*192,))
 # Encoding layer 32-neuron fully-connected
-encoded = tf.keras.layers.Dense(32, activation='tanh')(original)
+encoded = tf.keras.layers.Dense(32, activation='elu')(original)
 # Output layer - same shape as input
-decoded = tf.keras.layers.Dense(94*192, activation='tanh')(encoded)
+decoded = tf.keras.layers.Dense(94*192, activation='elu')(encoded)
 
 # Model relating original to output
 autoencoder = tf.keras.models.Model(original, decoded)

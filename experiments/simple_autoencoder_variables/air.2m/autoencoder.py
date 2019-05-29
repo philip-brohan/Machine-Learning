@@ -5,8 +5,6 @@
 # Very unlikely to work well at all, but this isn't about good
 #  results, it's about getting started. 
 
-# This version uses linear activations
-
 import os
 import tensorflow as tf
 import ML_Utilities
