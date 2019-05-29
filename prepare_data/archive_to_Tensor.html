@@ -80,10 +80,12 @@ Please <a href="https://github.com/philip-brohan/Machine-Learning/issues/new">ra
 <span class="kn">import</span> <span class="nn">datetime</span>
 <span class="kn">import</span> <span class="nn">IRData.twcr</span> <span class="k">as</span> <span class="nn">twcr</span>
 
-<span class="k">for</span> <span class="n">year</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">1969</span><span class="p">,</span><span class="mi">1979</span><span class="p">,</span><span class="mi">1989</span><span class="p">,</span><span class="mi">1999</span><span class="p">,</span><span class="mi">2009</span><span class="p">]:</span>
+<span class="k">for</span> <span class="n">year</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1969</span><span class="p">,</span><span class="mi">2010</span><span class="p">):</span>
     <span class="c1"># 2c is in 1 year batches so month and day don&#39;t matter</span>
     <span class="n">dte</span><span class="o">=</span><span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="p">(</span><span class="n">year</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
     <span class="n">twcr</span><span class="o">.</span><span class="n">fetch</span><span class="p">(</span><span class="s1">&#39;prmsl&#39;</span><span class="p">,</span><span class="n">dte</span><span class="p">,</span><span class="n">version</span><span class="o">=</span><span class="s1">&#39;2c&#39;</span><span class="p">)</span>
+    <span class="n">twcr</span><span class="o">.</span><span class="n">fetch</span><span class="p">(</span><span class="s1">&#39;air.2m&#39;</span><span class="p">,</span><span class="n">dte</span><span class="p">,</span><span class="n">version</span><span class="o">=</span><span class="s1">&#39;2c&#39;</span><span class="p">)</span>
+    <span class="n">twcr</span><span class="o">.</span><span class="n">fetch</span><span class="p">(</span><span class="s1">&#39;prate&#39;</span><span class="p">,</span><span class="n">dte</span><span class="p">,</span><span class="n">version</span><span class="o">=</span><span class="s1">&#39;2c&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>We can then use <a class="reference external" href="http://brohan.org/IRData/">IRData</a> again to load a single field as a <a class="reference external" href="https://scitools.org.uk/iris/docs/v2.2/userguide/loading_iris_cubes.html">Iris cube</a>. The cube.data field is a Numpy array that can be directly converted to a tensor, serialised, and written to disc:</p>
@@ -141,8 +143,22 @@ Please <a href="https://github.com/philip-brohan/Machine-Learning/issues/new">ra
                  <span class="n">version</span><span class="o">=</span><span class="s1">&#39;2c&#39;</span><span class="p">)</span>
     <span class="n">ic</span><span class="o">=</span><span class="n">ic</span><span class="o">.</span><span class="n">extract</span><span class="p">(</span><span class="n">iris</span><span class="o">.</span><span class="n">Constraint</span><span class="p">(</span><span class="n">member</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">member</span><span class="p">))</span>
     <span class="c1"># Normalise to mean=0, sd=1 (approx)</span>
-    <span class="n">ic</span><span class="o">.</span><span class="n">data</span> <span class="o">-=</span> <span class="mi">101325</span>
-    <span class="n">ic</span><span class="o">.</span><span class="n">data</span> <span class="o">/=</span> <span class="mi">3000</span>
+    <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">variable</span><span class="o">==</span><span class="s1">&#39;prmsl&#39;</span><span class="p">:</span>
+        <span class="n">ic</span><span class="o">.</span><span class="n">data</span> <span class="o">-=</span> <span class="mi">101325</span>
+        <span class="n">ic</span><span class="o">.</span><span class="n">data</span> <span class="o">/=</span> <span class="mi">3000</span>
+    <span class="k">elif</span> <span class="n">args</span><span class="o">.</span><span class="n">variable</span><span class="o">==</span><span class="s1">&#39;air.2m&#39;</span><span class="p">:</span>
+        <span class="n">ic</span><span class="o">.</span><span class="n">data</span> <span class="o">-=</span> <span class="mi">280</span>
+        <span class="n">ic</span><span class="o">.</span><span class="n">data</span> <span class="o">/=</span> <span class="mi">50</span>
+    <span class="k">elif</span> <span class="n">args</span><span class="o">.</span><span class="n">variable</span><span class="o">==</span><span class="s1">&#39;prate&#39;</span><span class="p">:</span>
+        <span class="k">pass</span>
+        <span class="c1"># Don&#39;t normalise prate until later</span>
+        <span class="c1">#ic.data = ic.data+numpy.random.uniform(0,numpy.exp(-11),</span>
+        <span class="c1">#                                           ic.data.shape)</span>
+        <span class="c1">#ic.data = numpy.log(ic.data)</span>
+        <span class="c1">#ic.data += 11.5</span>
+        <span class="c1">#ic.data = numpy.maximum(ic.data,-7)</span>
+        <span class="c1">#ic.data = numpy.minimum(ic.data,7)</span>
+
 <span class="k">else</span><span class="p">:</span>
     <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Source </span><span class="si">%s</span><span class="s1"> is not supported&#39;</span> <span class="o">%</span> <span class="n">args</span><span class="o">.</span><span class="n">source</span><span class="p">)</span>
 
@@ -181,31 +197,30 @@ Please <a href="https://github.com/philip-brohan/Machine-Learning/issues/new">ra
 <span class="n">f</span><span class="o">=</span><span class="nb">open</span><span class="p">(</span><span class="s2">&quot;run.txt&quot;</span><span class="p">,</span><span class="s2">&quot;w+&quot;</span><span class="p">)</span>
 
 <span class="n">count</span><span class="o">=</span><span class="mi">1</span>
-<span class="k">for</span> <span class="n">year</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">1969</span><span class="p">,</span><span class="mi">1979</span><span class="p">,</span><span class="mi">1989</span><span class="p">,</span><span class="mi">1999</span><span class="p">,</span><span class="mi">2009</span><span class="p">]:</span>
 
-    <span class="n">start_day</span><span class="o">=</span><span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="p">(</span><span class="n">year</span><span class="p">,</span>  <span class="mi">1</span><span class="p">,</span>  <span class="mi">1</span><span class="p">,</span>  <span class="mi">0</span><span class="p">)</span>
-    <span class="n">end_day</span>  <span class="o">=</span><span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="p">(</span><span class="n">year</span><span class="p">,</span> <span class="mi">12</span><span class="p">,</span> <span class="mi">31</span><span class="p">,</span> <span class="mi">23</span><span class="p">)</span>
+<span class="n">start_day</span><span class="o">=</span><span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="p">(</span><span class="mi">1969</span><span class="p">,</span>  <span class="mi">1</span><span class="p">,</span>  <span class="mi">1</span><span class="p">,</span>  <span class="mi">0</span><span class="p">)</span>
+<span class="n">end_day</span>  <span class="o">=</span><span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="p">(</span><span class="mi">2009</span><span class="p">,</span> <span class="mi">12</span><span class="p">,</span> <span class="mi">31</span><span class="p">,</span> <span class="mi">23</span><span class="p">)</span>
 
-    <span class="n">current_day</span><span class="o">=</span><span class="n">start_day</span>
-    <span class="k">while</span> <span class="n">current_day</span><span class="o">&lt;=</span><span class="n">end_day</span><span class="p">:</span>
-        <span class="k">if</span> <span class="n">count</span><span class="o">%</span><span class="mi">10</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="n">is_done</span><span class="p">(</span><span class="n">current_day</span><span class="o">.</span><span class="n">year</span><span class="p">,</span><span class="n">current_day</span><span class="o">.</span><span class="n">month</span><span class="p">,</span>
-                           <span class="n">current_day</span><span class="o">.</span><span class="n">day</span><span class="p">,</span><span class="n">current_day</span><span class="o">.</span><span class="n">hour</span><span class="p">,</span><span class="s1">&#39;test&#39;</span><span class="p">):</span>
-                <span class="n">cmd</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;./make_training_tensor.py --year=</span><span class="si">%d</span><span class="s2"> --month=</span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">+</span>
-                    <span class="s2">&quot; --day=</span><span class="si">%d</span><span class="s2"> --hour=</span><span class="si">%d</span><span class="s2"> --test </span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span> <span class="o">%</span> <span class="p">(</span>
-                       <span class="n">current_day</span><span class="o">.</span><span class="n">year</span><span class="p">,</span><span class="n">current_day</span><span class="o">.</span><span class="n">month</span><span class="p">,</span>
-                       <span class="n">current_day</span><span class="o">.</span><span class="n">day</span><span class="p">,</span><span class="n">current_day</span><span class="o">.</span><span class="n">hour</span><span class="p">)</span>
-                <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">cmd</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="n">is_done</span><span class="p">(</span><span class="n">current_day</span><span class="o">.</span><span class="n">year</span><span class="p">,</span><span class="n">current_day</span><span class="o">.</span><span class="n">month</span><span class="p">,</span>
-                           <span class="n">current_day</span><span class="o">.</span><span class="n">day</span><span class="p">,</span><span class="n">current_day</span><span class="o">.</span><span class="n">hour</span><span class="p">,</span><span class="s1">&#39;training&#39;</span><span class="p">):</span>
-                <span class="n">cmd</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;./make_training_tensor.py --year=</span><span class="si">%d</span><span class="s2"> --month=</span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">+</span>
-                    <span class="s2">&quot; --day=</span><span class="si">%d</span><span class="s2"> --hour=</span><span class="si">%d</span><span class="s2"> </span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span> <span class="o">%</span> <span class="p">(</span>
-                       <span class="n">current_day</span><span class="o">.</span><span class="n">year</span><span class="p">,</span><span class="n">current_day</span><span class="o">.</span><span class="n">month</span><span class="p">,</span>
-                       <span class="n">current_day</span><span class="o">.</span><span class="n">day</span><span class="p">,</span><span class="n">current_day</span><span class="o">.</span><span class="n">hour</span><span class="p">)</span>
-                <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">cmd</span><span class="p">)</span>
-        <span class="n">current_day</span><span class="o">=</span><span class="n">current_day</span><span class="o">+</span><span class="n">datetime</span><span class="o">.</span><span class="n">timedelta</span><span class="p">(</span><span class="n">hours</span><span class="o">=</span><span class="mi">126</span><span class="p">)</span>
-        <span class="n">count</span> <span class="o">+=</span> <span class="mi">1</span>
+<span class="n">current_day</span><span class="o">=</span><span class="n">start_day</span>
+<span class="k">while</span> <span class="n">current_day</span><span class="o">&lt;=</span><span class="n">end_day</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">count</span><span class="o">%</span><span class="mi">10</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">is_done</span><span class="p">(</span><span class="n">current_day</span><span class="o">.</span><span class="n">year</span><span class="p">,</span><span class="n">current_day</span><span class="o">.</span><span class="n">month</span><span class="p">,</span>
+                       <span class="n">current_day</span><span class="o">.</span><span class="n">day</span><span class="p">,</span><span class="n">current_day</span><span class="o">.</span><span class="n">hour</span><span class="p">,</span><span class="s1">&#39;test&#39;</span><span class="p">):</span>
+            <span class="n">cmd</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;./make_training_tensor.py --year=</span><span class="si">%d</span><span class="s2"> --month=</span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">+</span>
+                <span class="s2">&quot; --day=</span><span class="si">%d</span><span class="s2"> --hour=</span><span class="si">%d</span><span class="s2"> --test </span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span> <span class="o">%</span> <span class="p">(</span>
+                   <span class="n">current_day</span><span class="o">.</span><span class="n">year</span><span class="p">,</span><span class="n">current_day</span><span class="o">.</span><span class="n">month</span><span class="p">,</span>
+                   <span class="n">current_day</span><span class="o">.</span><span class="n">day</span><span class="p">,</span><span class="n">current_day</span><span class="o">.</span><span class="n">hour</span><span class="p">)</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">cmd</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">is_done</span><span class="p">(</span><span class="n">current_day</span><span class="o">.</span><span class="n">year</span><span class="p">,</span><span class="n">current_day</span><span class="o">.</span><span class="n">month</span><span class="p">,</span>
+                       <span class="n">current_day</span><span class="o">.</span><span class="n">day</span><span class="p">,</span><span class="n">current_day</span><span class="o">.</span><span class="n">hour</span><span class="p">,</span><span class="s1">&#39;training&#39;</span><span class="p">):</span>
+            <span class="n">cmd</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;./make_training_tensor.py --year=</span><span class="si">%d</span><span class="s2"> --month=</span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">+</span>
+                <span class="s2">&quot; --day=</span><span class="si">%d</span><span class="s2"> --hour=</span><span class="si">%d</span><span class="s2"> </span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span> <span class="o">%</span> <span class="p">(</span>
+                   <span class="n">current_day</span><span class="o">.</span><span class="n">year</span><span class="p">,</span><span class="n">current_day</span><span class="o">.</span><span class="n">month</span><span class="p">,</span>
+                   <span class="n">current_day</span><span class="o">.</span><span class="n">day</span><span class="p">,</span><span class="n">current_day</span><span class="o">.</span><span class="n">hour</span><span class="p">)</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">cmd</span><span class="p">)</span>
+    <span class="n">current_day</span><span class="o">=</span><span class="n">current_day</span><span class="o">+</span><span class="n">datetime</span><span class="o">.</span><span class="n">timedelta</span><span class="p">(</span><span class="n">hours</span><span class="o">=</span><span class="mi">126</span><span class="p">)</span>
+    <span class="n">count</span> <span class="o">+=</span> <span class="mi">1</span>
     
 <span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 

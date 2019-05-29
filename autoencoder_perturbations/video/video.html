@@ -1,0 +1,138 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Generating video diagnostics &#8212; Machine Learning Experiments</title>
+    <link rel="stylesheet" href="../../_static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../_static/language_data.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Video diagnostics of model training" href="summary_video.html" />
+    <link rel="prev" title="Simple autoencoder with leaky relu activation (rather than tanh)" href="../activations/leaky_relu/autoencoder.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="summary_video.html" title="Video diagnostics of model training"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="../activations/leaky_relu/autoencoder.html" title="Simple autoencoder with leaky relu activation (rather than tanh)"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">ML Experiments</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../perturbations.html" accesskey="U">Perturbing the simple autoencoder</a> &#187;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../index.html">
+              <img class="logo" src="../../_static/Weather-Network.png" alt="Logo"/>
+            </a></p>
+<h3><a href="../../index.html">Table of Contents</a></h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../prepare_data/prepare_data.html">Getting climate data into TensorFlow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../simple_autoencoder/autoencoder.html">Getting started - a simple autoencoder</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../perturbations.html">Perturbing the simple autoencoder</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../package/ML_Utilities.html">ML Utilities package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../credits.html">Small Print</a></li>
+</ul>
+<h3><a href="https://github.com/philip-brohan/Machine-Learning">Get the source code</a></h3>
+
+<a href="https://github.com/philip-brohan/Machine-Learning"
+           rel="nofollow">Github source repository</a>
+
+<h3>Found a bug, or have a suggestion?</h3>
+
+Please <a href="https://github.com/philip-brohan/Machine-Learning/issues/new">raise an issue</a>.
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="generating-video-diagnostics">
+<h1>Generating video diagnostics<a class="headerlink" href="#generating-video-diagnostics" title="Permalink to this headline">¶</a></h1>
+<p>The <a class="reference internal" href="../../simple_autoencoder/summary.html"><span class="doc">simple autoencoder summary plot</span></a> gives a nice representation of the model state and output quality after training. I’d like to show the same representation, as it varies through training, as a video.</p>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+<center>
+<table><tr><td><center>
+<iframe src="https://player.vimeo.com/video/338277430?title=0&byline=0&portrait=0" width="795" height="448" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen></iframe></center></td></tr>
+<tr><td><center>Autencoder model state (left) validation (right)</center></td></tr>
+</table>
+</center><p>On the left, the model weights: The boxplot in the centre shows the weights associated with each neuron in the hidden layer, arranged in order, largest to smallest. Negative weights have been converted to positive (and the sign of the associated output layer weights switched accordingly). The colourmaps on top are the weights, for each hidden layer neuron, for each input field location (so a lat:lon map). They are aranged in the same order as the hidden layer weights (so if hidden-layer neuron 3 has the largest weight, the input layer weights for neuron 3 are shown at top left). The colourmaps on the bottom are the output layer weights, arranged in the same way.</p>
+<p>Top right, a sample pressure field: Original in red, after passing through the autoencoder in blue.</p>
+<p>Bottom right, training progress: Loss v. no. of training epochs (but note that one epoch here is different (fewer training fields) than one epoch in the other examples).</p>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="summary_video.html">Video diagnostics of model training</a></li>
+</ul>
+</div>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+<p>I’d also like a video of the presure field evolution - both original and after passing through the (fully-trained) autoencoder:</p>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+<center>
+<table><tr><td><center>
+<iframe src="https://player.vimeo.com/video/338276308?title=0&byline=0&portrait=0" width="795" height="448" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen></iframe></center></td></tr>
+<tr><td><center>Mean sea-level pressure contours from 20CRv2c (red), and after passing through the autoencoder (blue).</center></td></tr>
+</table>
+</center><div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="comparison_video.html">Video diagnostics of model output</a></li>
+</ul>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="summary_video.html" title="Video diagnostics of model training"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="../activations/leaky_relu/autoencoder.html" title="Simple autoencoder with leaky relu activation (rather than tanh)"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">ML Experiments</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../perturbations.html" >Perturbing the simple autoencoder</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    </div>
+  </body>
+</html>

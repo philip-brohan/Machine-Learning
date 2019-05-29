@@ -75,8 +75,8 @@ Please <a href="https://github.com/philip-brohan/Machine-Learning/issues/new">ra
 <dt>To follow that example, but using 20CR2c MSLP fields instead of MNIST as the target, I made three changes:</dt>
 <dd><ul class="first last simple">
 <li>I used the <a class="reference internal" href="../prepare_data/dataset_from_tensor_files.html"><span class="doc">20CR2c data source</span></a>.</li>
-<li>I changed the activation from <code class="docutils literal notranslate"><span class="pre">relu</span></code> to <code class="docutils literal notranslate"><span class="pre">sigmoid</span></code> as the normalised mslp data is spread around 0 rather than on the range 0-1.</li>
-<li>I changed the loss metric to RMS from <code class="docutils literal notranslate"><span class="pre">binary_crossentropy</span></code> (again, because the data is not on the range 0-1).</li>
+<li>I changed the activation from <code class="docutils literal notranslate"><span class="pre">relu</span></code> to <code class="docutils literal notranslate"><span class="pre">tanh</span></code> as the normalised mslp data is spread around 0 rather than on the range 0-1.</li>
+<li>I changed the loss metric to RMS from <code class="docutils literal notranslate"><span class="pre">binary_crossentropy</span></code> (because this is a regression problem, not a classification).</li>
 </ul>
 </dd>
 </dl>
@@ -93,6 +93,7 @@ Please <a href="https://github.com/philip-brohan/Machine-Learning/issues/new">ra
 <span class="kn">from</span> <span class="nn">tensorflow.data</span> <span class="k">import</span> <span class="n">Dataset</span>
 <span class="kn">from</span> <span class="nn">glob</span> <span class="k">import</span> <span class="n">glob</span>
 <span class="kn">import</span> <span class="nn">numpy</span>
+<span class="kn">import</span> <span class="nn">pickle</span>
 
 <span class="c1"># How many times will we train on each training data point</span>
 <span class="n">n_epochs</span><span class="o">=</span><span class="mi">100</span>
@@ -147,9 +148,9 @@ Please <a href="https://github.com/philip-brohan/Machine-Learning/issues/new">ra
 <span class="c1"># Input placeholder - treat data as 1d</span>
 <span class="n">original</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">keras</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">Input</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">91</span><span class="o">*</span><span class="mi">180</span><span class="p">,))</span>
 <span class="c1"># Encoding layer 32-neuron fully-connected</span>
-<span class="n">encoded</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">keras</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">Dense</span><span class="p">(</span><span class="mi">32</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="s1">&#39;sigmoid&#39;</span><span class="p">)(</span><span class="n">original</span><span class="p">)</span>
+<span class="n">encoded</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">keras</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">Dense</span><span class="p">(</span><span class="mi">32</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="s1">&#39;tanh&#39;</span><span class="p">)(</span><span class="n">original</span><span class="p">)</span>
 <span class="c1"># Output layer - same shape as input</span>
-<span class="n">decoded</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">keras</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">Dense</span><span class="p">(</span><span class="mi">91</span><span class="o">*</span><span class="mi">180</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="s1">&#39;sigmoid&#39;</span><span class="p">)(</span><span class="n">encoded</span><span class="p">)</span>
+<span class="n">decoded</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">keras</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">Dense</span><span class="p">(</span><span class="mi">91</span><span class="o">*</span><span class="mi">180</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="s1">&#39;tanh&#39;</span><span class="p">)(</span><span class="n">encoded</span><span class="p">)</span>
 
 <span class="c1"># Model relating original to output</span>
 <span class="n">autoencoder</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">keras</span><span class="o">.</span><span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">(</span><span class="n">original</span><span class="p">,</span> <span class="n">decoded</span><span class="p">)</span>
@@ -158,12 +159,12 @@ Please <a href="https://github.com/philip-brohan/Machine-Learning/issues/new">ra
 <span class="n">autoencoder</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">optimizer</span><span class="o">=</span><span class="s1">&#39;adadelta&#39;</span><span class="p">,</span> <span class="n">loss</span><span class="o">=</span><span class="s1">&#39;mean_squared_error&#39;</span><span class="p">)</span>
 
 <span class="c1"># Train the autoencoder</span>
-<span class="n">autoencoder</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">tr_data</span><span class="p">,</span> <span class="c1"># Get (source,target) pairs from this Dataset</span>
-                <span class="n">epochs</span><span class="o">=</span><span class="n">n_epochs</span><span class="p">,</span>
-                <span class="n">steps_per_epoch</span><span class="o">=</span><span class="n">n_steps</span><span class="p">,</span>
-                <span class="n">validation_data</span><span class="o">=</span><span class="n">test_data</span><span class="p">,</span>
-                <span class="n">validation_steps</span><span class="o">=</span><span class="n">test_steps</span><span class="p">,</span>
-                <span class="n">verbose</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span> <span class="c1"># One line per epoch</span>
+<span class="n">history</span><span class="o">=</span><span class="n">autoencoder</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">tr_data</span><span class="p">,</span> <span class="c1"># Get (source,target) pairs from this Dataset</span>
+                        <span class="n">epochs</span><span class="o">=</span><span class="n">n_epochs</span><span class="p">,</span>
+                        <span class="n">steps_per_epoch</span><span class="o">=</span><span class="n">n_steps</span><span class="p">,</span>
+                        <span class="n">validation_data</span><span class="o">=</span><span class="n">test_data</span><span class="p">,</span>
+                        <span class="n">validation_steps</span><span class="o">=</span><span class="n">test_steps</span><span class="p">,</span>
+                        <span class="n">verbose</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span> <span class="c1"># One line per epoch</span>
 
 <span class="c1"># Save the model</span>
 <span class="n">save_file</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">/Machine-Learning-experiments/simple_autoencoder/saved_models/Epoch_</span><span class="si">%04d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span>
@@ -171,22 +172,35 @@ Please <a href="https://github.com/philip-brohan/Machine-Learning/issues/new">ra
 <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">save_file</span><span class="p">)):</span>
     <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">save_file</span><span class="p">))</span>
 <span class="n">tf</span><span class="o">.</span><span class="n">keras</span><span class="o">.</span><span class="n">models</span><span class="o">.</span><span class="n">save_model</span><span class="p">(</span><span class="n">autoencoder</span><span class="p">,</span><span class="n">save_file</span><span class="p">)</span>
+<span class="c1"># Save the training history</span>
+<span class="n">history_file</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">/Machine-Learning-experiments/simple_autoencoder/saved_models/history_to_</span><span class="si">%04d</span><span class="s2">.pkl&quot;</span> <span class="o">%</span> <span class="p">(</span>
+                 <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s1">&#39;SCRATCH&#39;</span><span class="p">),</span><span class="n">n_epochs</span><span class="p">)</span>
+<span class="n">pickle</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">history</span><span class="o">.</span><span class="n">history</span><span class="p">,</span> <span class="nb">open</span><span class="p">(</span><span class="n">history_file</span><span class="p">,</span> <span class="s2">&quot;wb&quot;</span><span class="p">))</span>
 </pre></div>
 </div>
-<p>This runs nicely on my Linux desktop - takes about 2s/epoch (with 315 training fields) and uses 6 cores (of 8). The validation loss falls from around 0.5 to 0.19 over 100 epochs. So it’s learning something.</p>
+<p>This runs nicely on my Linux desktop - takes about s/epoch (with 315 training fields) and uses 6 cores (of 8). The validation loss falls from around 0.5 to 0.19 over 100 epochs. So it’s learning something.</p>
 <p>To see exactly what it does, we can compare an original MSLP field with the same field passed through the autoencoder (after 100 epochs training):</p>
 <div class="figure align-center" id="id1" style="width: 95%">
-<a class="reference internal image-reference" href="../_images/comparison_2009-03-12:12.png"><img alt="../_images/comparison_2009-03-12:12.png" src="../_images/comparison_2009-03-12:12.png" style="width: 95%;" /></a>
-<p class="caption"><span class="caption-text">MSLP contours from 20CR2c for 2009-03-12:12. Original in top panel - after passing through the autoencoder in bottom panel. Note that the contour spacings are different between the panels.</span></p>
+<a class="reference internal image-reference" href="../_images/comparison_2009-03-12:066.png"><img alt="../_images/comparison_2009-03-12:066.png" src="../_images/comparison_2009-03-12:066.png" style="width: 95%;" /></a>
+<p class="caption"><span class="caption-text">MSLP contours from 20CR2c for 2009-03-12:12. Original in top panel - after passing through the autoencoder in bottom panel.</span></p>
 </div>
 <div class="line-block">
 <div class="line"><br /></div>
 </div>
-<p>We might expect an underpowered autoencoder minimising RMS error to ignore the input field and just guess a climatology every time. That is what happens here - the output is almost the same whatever the input field. The climatology is not bad though, considering the simplicity of the model (32 neurons, less than 2 minutes training time - it gets the subtropical highs and the storm tracks.</p>
+<blockquote>
+<div>The result is not bad, considering the simplicity of the model (32 neurons, only a few minutes training time - it gets the subtropical highs and the storm tracks.</div></blockquote>
+<p>Because the model is so simple, we can also examine the weights directly:</p>
+<div class="figure align-center" id="id2" style="width: 95%">
+<a class="reference internal image-reference" href="../_images/weights.png"><img alt="../_images/weights.png" src="../_images/weights.png" style="width: 95%;" /></a>
+<p class="caption"><span class="caption-text">Weights after 100 epochs training. The boxplot in the centre shows the weights associated with each neuron in the hidden layer, arranged in order, largest to smallest. Negative weights have been converted to positive (and the sign of the associated output layer weights switched accordingly). The colourmaps on top are the weights, for each hidden layer neuron, for each input field location (so a lat:lon map). They are aranged in the same order as the hidden layer weights (so if hidden-layer neuron 3 has the largest weight, the input layer weights for neuron 3 are shown at top left). The colourmaps on the botton are the output layer weights, arranged in the same way.</span></p>
+</div>
+<p>The weights show the model is behaving sensibly, I expected it to converge on a set of output patterns similar to <a class="reference external" href="https://en.wikipedia.org/wiki/Empirical_orthogonal_functions">EOFs</a> of the pressure field, a matching set of input patterns, and a range of hidden-layer weights indicating which patterns were typicaly bigger. We do get something that looks like that.</p>
 <p>So it does work, though not well enough to be useful. Success is then <em>merely</em> a matter of specifying and training a better model.</p>
 <div class="toctree-wrapper compound">
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="validation.html">Simple autoencoder validation script</a></li>
+<li class="toctree-l1"><a class="reference internal" href="weights.html">Simple autoencoder introspection script</a></li>
+<li class="toctree-l1"><a class="reference internal" href="summary.html">Simple autoencoder validation summary</a></li>
 </ul>
 </div>
 </div>

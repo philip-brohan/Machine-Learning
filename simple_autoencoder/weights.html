@@ -1,0 +1,232 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Simple autoencoder introspection script &#8212; Machine Learning Experiments</title>
+    <link rel="stylesheet" href="../_static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/language_data.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Simple autoencoder validation summary" href="summary.html" />
+    <link rel="prev" title="Simple autoencoder validation script" href="validation.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="summary.html" title="Simple autoencoder validation summary"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="validation.html" title="Simple autoencoder validation script"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">ML Experiments</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="autoencoder.html" accesskey="U">Getting started - a minimal autoencoder</a> &#187;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../index.html">
+              <img class="logo" src="../_static/Weather-Network.png" alt="Logo"/>
+            </a></p>
+<h3><a href="../index.html">Table of Contents</a></h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../prepare_data/prepare_data.html">Getting climate data into TensorFlow</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="autoencoder.html">Getting started - a simple autoencoder</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../autoencoder_perturbations/perturbations.html">Perturbing the simple autoencoder</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../package/ML_Utilities.html">ML Utilities package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../credits.html">Small Print</a></li>
+</ul>
+<h3><a href="https://github.com/philip-brohan/Machine-Learning">Get the source code</a></h3>
+
+<a href="https://github.com/philip-brohan/Machine-Learning"
+           rel="nofollow">Github source repository</a>
+
+<h3>Found a bug, or have a suggestion?</h3>
+
+Please <a href="https://github.com/philip-brohan/Machine-Learning/issues/new">raise an issue</a>.
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="simple-autoencoder-introspection-script">
+<h1>Simple autoencoder introspection script<a class="headerlink" href="#simple-autoencoder-introspection-script" title="Permalink to this headline">¶</a></h1>
+<p>Each of the 32 neurons in the hidden layer has a weight of its own, an array of 91*180 weights linking it to the inputs (one for each grid cell in the 20CR2c data), and an array of 91*180 weights linking it to the outputs. We can plot all these in a single figure.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="ch">#!/usr/bin/env python</span>
+
+<span class="c1"># Show the autoencoder weights.</span>
+
+<span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
+<span class="n">tf</span><span class="o">.</span><span class="n">enable_eager_execution</span><span class="p">()</span>
+<span class="kn">import</span> <span class="nn">numpy</span>
+
+<span class="kn">import</span> <span class="nn">ML_Utilities</span>
+
+<span class="kn">import</span> <span class="nn">IRData.twcr</span> <span class="k">as</span> <span class="nn">twcr</span>
+<span class="kn">import</span> <span class="nn">iris</span>
+<span class="kn">import</span> <span class="nn">datetime</span>
+<span class="kn">import</span> <span class="nn">argparse</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">math</span>
+
+<span class="kn">import</span> <span class="nn">Meteorographica</span> <span class="k">as</span> <span class="nn">mg</span>
+
+<span class="kn">import</span> <span class="nn">matplotlib</span>
+<span class="kn">from</span> <span class="nn">matplotlib.backends.backend_agg</span> <span class="k">import</span> <span class="n">FigureCanvasAgg</span> <span class="k">as</span> <span class="n">FigureCanvas</span>
+<span class="kn">from</span> <span class="nn">matplotlib.figure</span> <span class="k">import</span> <span class="n">Figure</span>
+<span class="kn">import</span> <span class="nn">cartopy</span>
+<span class="kn">import</span> <span class="nn">cartopy.crs</span> <span class="k">as</span> <span class="nn">ccrs</span>
+
+<span class="c1"># Where on the plot to put each axes</span>
+<span class="k">def</span> <span class="nf">axes_geom</span><span class="p">(</span><span class="n">layer</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span><span class="n">channel</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span><span class="n">nchannels</span><span class="o">=</span><span class="mi">36</span><span class="p">):</span>
+     <span class="k">if</span> <span class="n">layer</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span> 
+         <span class="n">base</span><span class="o">=</span><span class="p">[</span><span class="mf">0.0</span><span class="p">,</span><span class="mf">0.6</span><span class="p">,</span><span class="mf">1.0</span><span class="p">,</span><span class="mf">0.4</span><span class="p">]</span>
+     <span class="k">else</span><span class="p">:</span>
+         <span class="n">base</span><span class="o">=</span><span class="p">[</span><span class="mf">0.0</span><span class="p">,</span><span class="mf">0.0</span><span class="p">,</span><span class="mf">1.0</span><span class="p">,</span><span class="mf">0.4</span><span class="p">]</span>
+     <span class="n">ncol</span><span class="o">=</span><span class="n">math</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">nchannels</span><span class="p">)</span>
+     <span class="n">nr</span><span class="o">=</span><span class="n">channel</span><span class="o">//</span><span class="n">ncol</span>
+     <span class="n">nc</span><span class="o">=</span><span class="n">channel</span><span class="o">-</span><span class="n">ncol</span><span class="o">*</span><span class="n">nr</span>
+     <span class="n">nr</span><span class="o">=</span><span class="n">ncol</span><span class="o">-</span><span class="mi">1</span><span class="o">-</span><span class="n">nr</span> <span class="c1"># Top down</span>
+     <span class="n">geom</span><span class="o">=</span><span class="p">[</span><span class="n">base</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">+</span><span class="p">(</span><span class="n">base</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">/</span><span class="n">ncol</span><span class="p">)</span><span class="o">*</span><span class="mf">0.95</span><span class="o">*</span><span class="n">nc</span><span class="p">,</span>
+           <span class="n">base</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">+</span><span class="p">(</span><span class="n">base</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="o">/</span><span class="n">ncol</span><span class="p">)</span><span class="o">*</span><span class="mf">0.95</span><span class="o">*</span><span class="n">nr</span><span class="p">,</span>
+           <span class="p">(</span><span class="n">base</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">/</span><span class="n">ncol</span><span class="p">)</span><span class="o">*</span><span class="mf">0.95</span><span class="p">,</span>
+           <span class="p">(</span><span class="n">base</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="o">/</span><span class="n">ncol</span><span class="p">)</span><span class="o">*</span><span class="mf">0.95</span><span class="p">]</span>
+     <span class="n">geom</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+=</span> <span class="p">(</span><span class="mf">0.05</span><span class="o">*</span><span class="n">base</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">/</span><span class="p">(</span><span class="n">ncol</span><span class="o">+</span><span class="mi">1</span><span class="p">))</span><span class="o">*</span><span class="p">(</span><span class="n">nc</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
+     <span class="n">geom</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+=</span> <span class="p">(</span><span class="mf">0.05</span><span class="o">*</span><span class="n">base</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="o">/</span><span class="p">(</span><span class="n">ncol</span><span class="o">+</span><span class="mi">1</span><span class="p">))</span><span class="o">*</span><span class="p">(</span><span class="n">nr</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
+     <span class="k">return</span> <span class="n">geom</span>
+
+<span class="c1"># Plot a single set of weights</span>
+<span class="k">def</span> <span class="nf">plot_weights</span><span class="p">(</span><span class="n">weights</span><span class="p">,</span><span class="n">layer</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span><span class="n">channel</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span><span class="n">nchannels</span><span class="o">=</span><span class="mi">36</span><span class="p">,</span>
+                 <span class="n">vmin</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">vmax</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="n">ax_input</span><span class="o">=</span><span class="n">fig</span><span class="o">.</span><span class="n">add_axes</span><span class="p">(</span><span class="n">axes_geom</span><span class="p">(</span><span class="n">layer</span><span class="o">=</span><span class="n">layer</span><span class="p">,</span>
+                                    <span class="n">channel</span><span class="o">=</span><span class="n">channel</span><span class="p">,</span>
+                                    <span class="n">nchannels</span><span class="o">=</span><span class="n">nchannels</span><span class="p">),</span>
+                          <span class="n">projection</span><span class="o">=</span><span class="n">projection</span><span class="p">)</span>
+    <span class="n">ax_input</span><span class="o">.</span><span class="n">set_axis_off</span><span class="p">()</span>
+    <span class="n">ax_input</span><span class="o">.</span><span class="n">set_extent</span><span class="p">(</span><span class="n">extent</span><span class="p">,</span> <span class="n">crs</span><span class="o">=</span><span class="n">projection</span><span class="p">)</span>
+    <span class="n">ax_input</span><span class="o">.</span><span class="n">background_patch</span><span class="o">.</span><span class="n">set_facecolor</span><span class="p">((</span><span class="mf">0.88</span><span class="p">,</span><span class="mf">0.88</span><span class="p">,</span><span class="mf">0.88</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
+
+    <span class="n">lats</span> <span class="o">=</span> <span class="n">w_in</span><span class="o">.</span><span class="n">coord</span><span class="p">(</span><span class="s1">&#39;latitude&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">points</span>
+    <span class="n">lons</span> <span class="o">=</span> <span class="n">w_in</span><span class="o">.</span><span class="n">coord</span><span class="p">(</span><span class="s1">&#39;longitude&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">points</span><span class="o">-</span><span class="mi">180</span>
+    <span class="n">prate_img</span><span class="o">=</span><span class="n">ax_input</span><span class="o">.</span><span class="n">pcolorfast</span><span class="p">(</span><span class="n">lons</span><span class="p">,</span> <span class="n">lats</span><span class="p">,</span> <span class="n">w_in</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> 
+                            <span class="n">cmap</span><span class="o">=</span><span class="s1">&#39;coolwarm&#39;</span><span class="p">,</span>
+                            <span class="n">vmin</span><span class="o">=</span><span class="n">vmin</span><span class="p">,</span>
+                            <span class="n">vmax</span><span class="o">=</span><span class="n">vmax</span><span class="p">,</span>
+                            <span class="p">)</span>
+
+<span class="c1"># Plot the hidden layer weights</span>
+<span class="k">def</span> <span class="nf">plot_hidden</span><span class="p">(</span><span class="n">weights</span><span class="p">):</span>
+     <span class="c1"># Single axes - var v. time</span>
+     <span class="n">ax</span><span class="o">=</span><span class="n">fig</span><span class="o">.</span><span class="n">add_axes</span><span class="p">([</span><span class="mf">0.05</span><span class="p">,</span><span class="mf">0.425</span><span class="p">,</span><span class="mf">0.9</span><span class="p">,</span><span class="mf">0.15</span><span class="p">])</span>
+     <span class="c1"># Axes ranges from data</span>
+     <span class="n">ax</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">(</span><span class="o">-</span><span class="mf">0.6</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="n">weights</span><span class="p">)</span><span class="o">-</span><span class="mf">0.4</span><span class="p">)</span>
+     <span class="n">ax</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">numpy</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">weights</span><span class="p">))</span><span class="o">*</span><span class="mf">1.05</span><span class="p">)</span>
+     <span class="n">ax</span><span class="o">.</span><span class="n">bar</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">weights</span><span class="p">)),</span>
+            <span class="n">height</span><span class="o">=</span><span class="n">numpy</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">weights</span><span class="p">[</span><span class="n">order</span><span class="p">]),</span>
+            <span class="n">color</span><span class="o">=</span><span class="s1">&#39;grey&#39;</span><span class="p">,</span>
+            <span class="n">tick_label</span><span class="o">=</span><span class="n">order</span><span class="p">)</span>
+
+<span class="c1"># Get a 20CR data for the grid metadata</span>
+<span class="n">ic</span><span class="o">=</span><span class="n">twcr</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s1">&#39;prmsl&#39;</span><span class="p">,</span><span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="p">(</span><span class="mi">1969</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">12</span><span class="p">,</span><span class="mi">6</span><span class="p">),</span>
+                           <span class="n">version</span><span class="o">=</span><span class="s1">&#39;2c&#39;</span><span class="p">)</span>
+<span class="n">ic</span><span class="o">=</span><span class="n">ic</span><span class="o">.</span><span class="n">extract</span><span class="p">(</span><span class="n">iris</span><span class="o">.</span><span class="n">Constraint</span><span class="p">(</span><span class="n">member</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
+
+<span class="c1"># Get the 9 neuron autoencoder</span>
+<span class="n">model_save_file</span><span class="o">=</span><span class="p">((</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">/Machine-Learning-experiments/&quot;</span><span class="o">+</span>
+                  <span class="s2">&quot;simple_autoencoder/&quot;</span><span class="o">+</span>
+                 <span class="s2">&quot;saved_models/Epoch_</span><span class="si">%04d</span><span class="s2">&quot;</span><span class="p">))</span> <span class="o">%</span> <span class="p">(</span>
+                     <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s1">&#39;SCRATCH&#39;</span><span class="p">),</span><span class="mi">100</span><span class="p">)</span>
+<span class="n">autoencoder</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">keras</span><span class="o">.</span><span class="n">models</span><span class="o">.</span><span class="n">load_model</span><span class="p">(</span><span class="n">model_save_file</span><span class="p">)</span>
+
+<span class="c1"># Get the order of the hidden weights - most to least important</span>
+<span class="n">order</span><span class="o">=</span><span class="n">numpy</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">autoencoder</span><span class="o">.</span><span class="n">get_weights</span><span class="p">()[</span><span class="mi">1</span><span class="p">]))[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+<span class="c1"># Make a comparison plot - Input, hidden, and output weights</span>
+<span class="n">fig</span><span class="o">=</span><span class="n">Figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">12</span><span class="p">),</span>  <span class="c1"># Width, Height (inches)</span>
+           <span class="n">dpi</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
+           <span class="n">facecolor</span><span class="o">=</span><span class="p">(</span><span class="mf">0.88</span><span class="p">,</span><span class="mf">0.88</span><span class="p">,</span><span class="mf">0.88</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span>
+           <span class="n">edgecolor</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+           <span class="n">linewidth</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+           <span class="n">frameon</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+           <span class="n">subplotpars</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+           <span class="n">tight_layout</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+<span class="n">canvas</span><span class="o">=</span><span class="n">FigureCanvas</span><span class="p">(</span><span class="n">fig</span><span class="p">)</span>
+
+<span class="c1"># Hidden layer</span>
+<span class="n">plot_hidden</span><span class="p">(</span><span class="n">autoencoder</span><span class="o">.</span><span class="n">get_weights</span><span class="p">()[</span><span class="mi">1</span><span class="p">])</span>
+
+<span class="c1"># Global projection</span>
+<span class="n">projection</span><span class="o">=</span><span class="n">ccrs</span><span class="o">.</span><span class="n">RotatedPole</span><span class="p">(</span><span class="n">pole_longitude</span><span class="o">=</span><span class="mf">180.0</span><span class="p">,</span> <span class="n">pole_latitude</span><span class="o">=</span><span class="mf">90.0</span><span class="p">)</span>
+<span class="n">extent</span><span class="o">=</span><span class="p">[</span><span class="o">-</span><span class="mi">180</span><span class="p">,</span><span class="mi">180</span><span class="p">,</span><span class="o">-</span><span class="mi">90</span><span class="p">,</span><span class="mi">90</span><span class="p">]</span>
+
+<span class="k">for</span> <span class="n">layer</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">2</span><span class="p">]:</span>
+    <span class="n">w_l</span><span class="o">=</span><span class="n">autoencoder</span><span class="o">.</span><span class="n">get_weights</span><span class="p">()[</span><span class="n">layer</span><span class="p">]</span>
+    <span class="n">vmin</span><span class="o">=</span><span class="n">numpy</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">w_l</span><span class="p">)</span><span class="o">-</span><span class="n">numpy</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">w_l</span><span class="p">)</span><span class="o">*</span><span class="mi">3</span>
+    <span class="n">vmax</span><span class="o">=</span><span class="n">numpy</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">w_l</span><span class="p">)</span><span class="o">+</span><span class="n">numpy</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">w_l</span><span class="p">)</span><span class="o">*</span><span class="mi">3</span>
+    <span class="n">count</span><span class="o">=</span><span class="mi">0</span>
+    <span class="k">for</span> <span class="n">channel</span> <span class="ow">in</span> <span class="n">order</span><span class="p">:</span>
+        <span class="n">w_in</span><span class="o">=</span><span class="n">ic</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">layer</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
+            <span class="n">w_in</span><span class="o">.</span><span class="n">data</span><span class="o">=</span><span class="n">w_l</span><span class="p">[:,</span><span class="n">channel</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">ic</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">w_in</span><span class="o">.</span><span class="n">data</span><span class="o">=</span><span class="n">w_l</span><span class="p">[</span><span class="n">channel</span><span class="p">,:]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">ic</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+        <span class="n">w_in</span><span class="o">.</span><span class="n">data</span> <span class="o">*=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">sign</span><span class="p">(</span><span class="n">autoencoder</span><span class="o">.</span><span class="n">get_weights</span><span class="p">()[</span><span class="mi">1</span><span class="p">][</span><span class="n">channel</span><span class="p">])</span>
+        <span class="n">plot_weights</span><span class="p">(</span><span class="n">w_in</span><span class="p">,</span><span class="n">layer</span><span class="o">=</span><span class="n">layer</span><span class="p">,</span><span class="n">channel</span><span class="o">=</span><span class="n">count</span><span class="p">,</span><span class="n">nchannels</span><span class="o">=</span><span class="mi">36</span><span class="p">,</span>
+                     <span class="n">vmin</span><span class="o">=</span><span class="n">vmin</span><span class="p">,</span><span class="n">vmax</span><span class="o">=</span><span class="n">vmax</span><span class="p">)</span>
+        <span class="n">count</span> <span class="o">+=</span> <span class="mi">1</span>
+        
+<span class="c1"># Render the figure as a png</span>
+<span class="n">fig</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s2">&quot;weights.png&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="summary.html" title="Simple autoencoder validation summary"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="validation.html" title="Simple autoencoder validation script"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">ML Experiments</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="autoencoder.html" >Getting started - a minimal autoencoder</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    </div>
+  </body>
+</html>
