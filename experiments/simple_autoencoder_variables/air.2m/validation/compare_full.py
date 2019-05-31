@@ -170,13 +170,43 @@ for layer in [0,2]:
                      vmin=vmin,vmax=vmax)
         count += 1
 
+# Scatterplot of encoded v original
+ax=fig.add_axes([0.54,0.05,0.225,0.4])
+aspect=.225/.4*16/9
+# Axes ranges from data
+dmin=min(ic.data.min(),pm.data.min())
+dmax=max(ic.data.max(),pm.data.max())
+dmean=(dmin+dmax)/2
+dmax=dmean+(dmax-dmean)*1.05
+dmin=dmean-(dmean-dmin)*1.05
+if aspect<1:
+    ax.set_xlim(dmin-273.15,dmax-273.15)
+    ax.set_ylim((dmean-(dmean-dmin)*aspect)-273.15,
+                (dmean+(dmax-dmean)*aspect)-273.15)
+else:
+    ax.set_ylim(dmin-273.15,dmax-273.15)
+    ax.set_xlim((dmean-(dmean-dmin)*aspect)-273.15,
+                (dmean+(dmax-dmean)*aspect)-273.15)
+ax.scatter(x=pm.data.flatten()-273.15,
+           y=ic.data.flatten()-273.15,
+           c='black',
+           alpha=0.25,
+           marker='.',
+           s=2)
+ax.set(ylabel='Original', 
+       xlabel='Encoded')
+ax.grid(color='black',
+        alpha=0.2,
+        linestyle='-', 
+        linewidth=0.5)
+
 # Plot the training history
 history_save_file=("%s/Machine-Learning-experiments/"+
                    "simple_autoencoder_variables/air.2m/"+
                    "saved_models/history_to_%04d.pkl") % (
                       os.getenv('SCRATCH'),100)
 history=pickle.load( open( history_save_file, "rb" ) )
-ax=fig.add_axes([0.55,0.05,0.425,0.4])
+ax=fig.add_axes([0.82,0.05,0.155,0.4])
 # Axes ranges from data
 ax.set_xlim(0,len(history['loss']))
 ax.set_ylim(0,numpy.max(numpy.concatenate((history['loss'],

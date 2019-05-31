@@ -5,6 +5,7 @@
 import os
 import tensorflow as tf
 import ML_Utilities
+import pickle
 
 # How many epochs to train for
 n_epochs=100
@@ -31,14 +32,19 @@ tr_test = tr_test.map(to_model)
 
 # Input placeholder - treat data as 1d
 original = tf.keras.layers.Input(shape=(91*180,))
-# Encoding layer 32-neuron fully-connected
-encoded = tf.keras.layers.Dense(128, activation='tanh')(original)
-encoded = tf.keras.layers.Dense(64, activation='tanh')(encoded)
-encoded = tf.keras.layers.Dense(32, activation='tanh')(encoded)
-decoded = tf.keras.layers.Dense(64, activation='tanh')(encoded)
-decoded = tf.keras.layers.Dense(128, activation='tanh')(decoded)
+# Encoding layers
+encoded = tf.keras.layers.Dense(128)(original)
+encoded = tf.keras.layers.LeakyReLU()(encoded)
+encoded = tf.keras.layers.Dense(64)(encoded)
+encoded = tf.keras.layers.LeakyReLU()(encoded)
+encoded = tf.keras.layers.Dense(32)(encoded)
+encoded = tf.keras.layers.LeakyReLU()(encoded)
+decoded = tf.keras.layers.Dense(64)(encoded)
+decoded = tf.keras.layers.LeakyReLU()(decoded)
+decoded = tf.keras.layers.Dense(128)(decoded)
+decoded = tf.keras.layers.LeakyReLU()(decoded)
 # Output layer - same shape as input
-decoded = tf.keras.layers.Dense(91*180, activation='tanh')(decoded)
+decoded = tf.keras.layers.Dense(91*180)(decoded)
 
 # Model relating original to output
 autoencoder = tf.keras.models.Model(original, decoded)
@@ -47,7 +53,7 @@ autoencoder = tf.keras.models.Model(original, decoded)
 autoencoder.compile(optimizer='adadelta', loss='mean_squared_error')
 
 # Train the autoencoder
-autoencoder.fit(x=tr_data, # Get (source,target) pairs from this Dataset
+history=autoencoder.fit(x=tr_data, 
                 epochs=n_epochs,
                 steps_per_epoch=n_steps,
                 validation_data=tr_test,
@@ -62,3 +68,8 @@ save_file=("%s/Machine-Learning-experiments/"+
 if not os.path.isdir(os.path.dirname(save_file)):
     os.makedirs(os.path.dirname(save_file))
 tf.keras.models.save_model(autoencoder,save_file)
+history_file=("%s/Machine-Learning-experiments/"+
+              "deep_autoencoder/"+
+              "saved_models/history_to_%04d.pkl") % (
+                 os.getenv('SCRATCH'),n_epochs)
+pickle.dump(history.history, open(history_file, "wb"))

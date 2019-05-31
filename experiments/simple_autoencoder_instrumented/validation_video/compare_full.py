@@ -188,18 +188,46 @@ for layer in [0,2]:
                      vmin=vmin,vmax=vmax)
         count += 1
 
+# Scatterplot of encoded v original
+ax=fig.add_axes([0.54,0.05,0.225,0.4])
+aspect=.225/.4*16/9
+# Axes ranges from data
+dmin=min(ic.data.min(),pm.data.min())
+dmax=max(ic.data.max(),pm.data.max())
+dmean=(dmin+dmax)/2
+dmax=dmean+(dmax-dmean)*1.05
+dmin=dmean-(dmean-dmin)*1.05
+if aspect<1:
+    ax.set_xlim(dmin/100,dmax/100)
+    ax.set_ylim((dmean-(dmean-dmin)*aspect)/100,
+                (dmean+(dmax-dmean)*aspect)/100)
+else:
+    ax.set_ylim(dmin/100,dmax/100)
+    ax.set_xlim((dmean-(dmean-dmin)*aspect)/100,
+                (dmean+(dmax-dmean)*aspect)/100)
+ax.scatter(x=pm.data.flatten()/100,
+           y=ic.data.flatten()/100,
+           c='black',
+           alpha=0.25,
+           marker='.',
+           s=2)
+ax.set(ylabel='Original', 
+       xlabel='Encoded')
+ax.grid(color='black',
+        alpha=0.2,
+        linestyle='-', 
+        linewidth=0.5)
+
 # Plot the training history
 history_save_file=("%s/Machine-Learning-experiments/"+
                    "simple_autoencoder_instrumented/"+
                    "saved_models/history_to_%04d.pkl") % (
                           os.getenv('SCRATCH'),1000)
 history=pickle.load( open( history_save_file, "rb" ) )
-ax=fig.add_axes([0.55,0.05,0.425,0.4])
+ax=fig.add_axes([0.82,0.05,0.155,0.4])
 # Axes ranges from data
 ax.set_xlim(0,len(history['loss']))
 ax.set_ylim(0,numpy.max(history['loss']))
-#ax.set_ylim(0,numpy.max(numpy.concatenate((history['loss'],
-#                                           history['val_loss']))))
 ax.set(xlabel='Epochs of training', 
        ylabel='Loss')
 ax.grid(color='black',
@@ -211,11 +239,6 @@ ax.plot(range(len(history['loss'][0:args.epoch])),
         color='grey',
         linestyle='-',
         linewidth=2)
-#ax.plot(range(len(history['val_loss'][0:args.epoch])),
-#        history['val_loss'][0:args.epoch],
-#        color='black',
-#        linestyle='-',
-#        linewidth=2)
 
 # Render the figure as a png
 figfile=("%s/Machine-Learning-experiments/"+
