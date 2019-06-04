@@ -11,6 +11,7 @@ This page documents my attempts to learn and use ML methods. I chose to use `Ten
    Getting climate data into TensorFlow <prepare_data/prepare_data>
    Getting started - a simple autoencoder <simple_autoencoder/autoencoder>
    Perturbing the simple autoencoder <autoencoder_perturbations/perturbations>
+   A deep autoencoder <deep_autoencoder/autoencoder>
    
 
 .. toctree::
