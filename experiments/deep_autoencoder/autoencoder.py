@@ -42,7 +42,6 @@ encoded = tf.keras.layers.LeakyReLU()(encoded)
 decoded = tf.keras.layers.Dense(64)(encoded)
 decoded = tf.keras.layers.LeakyReLU()(decoded)
 decoded = tf.keras.layers.Dense(128)(decoded)
-decoded = tf.keras.layers.LeakyReLU()(decoded)
 # Output layer - same shape as input
 decoded = tf.keras.layers.Dense(91*180)(decoded)
 
