@@ -24,9 +24,10 @@ tr_data = tr_data.repeat(n_epochs)
 # Need to reshape the data to linear, and produce a tuple
 #  (source,target) for model
 def to_model(ict):
-   ict=tf.reshape(ict,[1,91*180])
+   ict=tf.reshape(ict,[91*180])
    return(ict,ict)
 tr_data = tr_data.map(to_model)
+tr_data = tr_data.batch(1)
 
 # Similar dataset from the prepared test data
 (tr_test,test_steps) = ML_Utilities.dataset(purpose='test',
@@ -34,6 +35,7 @@ tr_data = tr_data.map(to_model)
                                             variable='prmsl')
 tr_test = tr_test.repeat(n_epochs)
 tr_test = tr_test.map(to_model)
+tr_test = tr_test.batch(1)
 
 # Input placeholder - treat data as 1d
 original = tf.keras.layers.Input(shape=(91*180,))
