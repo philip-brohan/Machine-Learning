@@ -9,7 +9,7 @@ import pickle
 import numpy
 
 # How many epochs to train for
-n_epochs=10
+n_epochs=50
 
 # Create TensorFlow Dataset object from the prepared training data
 (tr_data,n_steps) = ML_Utilities.dataset(purpose='training',
@@ -21,7 +21,8 @@ tr_data = tr_data.repeat(n_epochs)
 # Also produce a tuple (source,target) for model
 def to_model(ict):
    ict=tf.reshape(ict,[91,180,1])
-   ict=tf.image.resize_images(ict, (32, 64))
+   #ict=tf.image.resize_images(ict, (32, 64),
+   #                           align_corners=True)
    return(ict,ict)
 tr_data = tr_data.map(to_model)
 tr_data = tr_data.batch(1)
@@ -34,13 +35,18 @@ tr_test = tr_test.repeat(n_epochs)
 tr_test = tr_test.map(to_model)
 tr_test = tr_test.batch(1)
 
+# Need to resize data so it's dimensions are a multiple of 8 (3*2-fold pool)
+class ResizeLayer(tf.keras.layers.Layer):
+   def __init__(self, newsize=None, **kwargs):
+      super(ResizeLayer, self).__init__(**kwargs)
+      self.resize_newsize = newsize
+   def call(self, input):
+      return tf.image.resize_images(input, self.resize_newsize,
+                                    align_corners=True)
+   def get_config(self):
+      return {'newsize': self.resize_newsize}
+
 # Padding and pruning functions for periodic boundary conditions
-#class LonPadLayer(tf.keras.layers.Layer):
-#   def call(self, input):
-#     return tf.tile(input, [1,1,3,1])[:,:,56:136,:]
-#class LonPruneLayer(tf.keras.layers.Layer):
-#   def call(self, input):
-#     return input[:,:,8:72,:]
 class LonPadLayer(tf.keras.layers.Layer):
    def __init__(self, index=3, padding=8, **kwargs):
       super(LonPadLayer, self).__init__(**kwargs)
@@ -56,7 +62,10 @@ class LonPadLayer(tf.keras.layers.Layer):
                                 None)
       self.lon_expansion_slice=tuple(self.lon_expansion_slice)      
    def call(self, input):
-     return tf.tile(input, self.lon_tile_spec)[self.lon_expansion_slice]
+      return tf.tile(input, self.lon_tile_spec)[self.lon_expansion_slice]
+   def get_config(self):
+      return {'index': self.lon_index}
+      return {'padding': self.lon_padding}
 class LonPruneLayer(tf.keras.layers.Layer):
    def __init__(self, index=3, padding=8, **kwargs):
       super(LonPruneLayer, self).__init__(**kwargs)
@@ -71,11 +80,16 @@ class LonPruneLayer(tf.keras.layers.Layer):
       self.lon_prune_slice=tuple(self.lon_prune_slice)      
    def call(self, input):
      return input[self.lon_prune_slice]
+   def get_config(self):
+      return {'index': self.lon_index}
+      return {'padding': self.lon_padding}
 
 # Input placeholder
-original = tf.keras.layers.Input(shape=(32,64,1,))
+original = tf.keras.layers.Input(shape=(91,180,1,))
+# Resize to have dimesions divisible by 8
+resized = ResizeLayer(newsize=(80,160))(original)
 # Wrap-around in longitude for periodic boundary conditions
-padded = LonPadLayer(padding=8)(original)
+padded = LonPadLayer(padding=8)(resized)
 # Encoding layers
 x = tf.keras.layers.Conv2D(16, (3, 3), padding='same')(padded)
 x = tf.keras.layers.LeakyReLU()(x)
@@ -100,9 +114,11 @@ x = tf.keras.layers.UpSampling2D((2, 2))(x)
 decoded = tf.keras.layers.Conv2D(1, (3, 3), padding='same')(x)
 # Strip the longitude wrap-around
 pruned=LonPruneLayer(padding=8)(decoded)
+# Restore to original dimensions
+outsize=ResizeLayer(newsize=(91,180))(pruned)
 
 # Model relating original to output
-autoencoder = tf.keras.models.Model(original,pruned)
+autoencoder = tf.keras.models.Model(original,outsize)
 # Choose a loss metric to minimise (RMS)
 #  and an optimiser to use (adadelta)
 autoencoder.compile(optimizer='adadelta', loss='mean_squared_error')

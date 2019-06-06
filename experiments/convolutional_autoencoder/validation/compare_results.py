@@ -23,9 +23,22 @@ import cartopy
 import cartopy.crs as ccrs
 
 # Get the 20CR data
-ic=twcr.load('prmsl',datetime.datetime(2009,3,12,6),
+ic=twcr.load('prmsl',datetime.datetime(2009,3,12,18),
                            version='2c')
 ic=ic.extract(iris.Constraint(member=1))
+
+# Need to resize data so it's dimensions are a multiple of 8 (3*2-fold pool)
+class ResizeLayer(tf.keras.layers.Layer):
+   def __init__(self, newsize=None, **kwargs):
+      super(ResizeLayer, self).__init__(**kwargs)
+      self.resize_newsize = newsize
+   def build(self, input_shape):
+      self.resize_newsize *= 1
+   def call(self, input):
+      return tf.image.resize_images(input, self.resize_newsize,
+                                    align_corners=True)
+   def get_config(self):
+      return {'newsize': self.resize_newsize}
 
 # Padding and pruning functions for periodic boundary conditions
 class LonPadLayer(tf.keras.layers.Layer):
@@ -44,6 +57,9 @@ class LonPadLayer(tf.keras.layers.Layer):
       self.lon_expansion_slice=tuple(self.lon_expansion_slice)      
    def call(self, input):
      return tf.tile(input, self.lon_tile_spec)[self.lon_expansion_slice]
+   def get_config(self):
+      return {'index': self.lon_index}
+      return {'adding': self.lon_padding}
 class LonPruneLayer(tf.keras.layers.Layer):
    def __init__(self, index=3, padding=8, **kwargs):
       super(LonPruneLayer, self).__init__(**kwargs)
@@ -58,15 +74,19 @@ class LonPruneLayer(tf.keras.layers.Layer):
       self.lon_prune_slice=tuple(self.lon_prune_slice)      
    def call(self, input):
      return input[self.lon_prune_slice]
+   def get_config(self):
+      return {'index': self.lon_index}
+      return {'padding': self.lon_padding}
 
 # Get the autoencoder
 model_save_file=("%s/Machine-Learning-experiments/"+
                   "convolutional_autoencoder/"+
                   "saved_models/Epoch_%04d") % (
-                     os.getenv('SCRATCH'),10)
+                     os.getenv('SCRATCH'),50)
 autoencoder=tf.keras.models.load_model(model_save_file,
                                        custom_objects={'LonPadLayer': LonPadLayer,
-                                                       'LonPruneLayer': LonPruneLayer})
+                                                       'LonPruneLayer': LonPruneLayer,
+                                                       'ResizeLayer': ResizeLayer})
 
 # Normalisation - Pa to mean=0, sd=1 - and back
 def normalise(x):
@@ -101,11 +121,8 @@ matplotlib.rc('image',aspect='auto')
 pm=ic.copy()
 pm.data=normalise(pm.data)
 ict=tf.convert_to_tensor(pm.data, numpy.float32)
-ict=tf.reshape(ict,[91,180,1])
-ict=tf.image.resize_images(ict, (32, 64))
-ict=tf.reshape(ict,[1,32,64,1])
+ict=tf.reshape(ict,[1,91,180,1])
 result=autoencoder.predict_on_batch(ict)
-result=tf.image.resize_images(result, (91, 180))
 result=tf.reshape(result,[91,180])
 pm.data=unnormalise(result)
 
@@ -175,7 +192,7 @@ ax.grid(color='black',
 history_save_file=("%s/Machine-Learning-experiments/"+
                    "convolutional_autoencoder/"+
                    "saved_models/history_to_%04d.pkl") % (
-                      os.getenv('SCRATCH'),10)
+                      os.getenv('SCRATCH'),50)
 history=pickle.load( open( history_save_file, "rb" ) )
 ax=fig.add_axes([0.62,0.05,0.35,0.4])
 # Axes ranges from data
