@@ -9,11 +9,15 @@ This page documents my attempts to learn and use ML methods. I chose to use `Ten
    :maxdepth: 1
 
    Getting climate data into TensorFlow <prepare_data/prepare_data>
+
+.. toctree::
+   :maxdepth: 1
+
    Getting started - a simple autoencoder <simple_autoencoder/autoencoder>
    Perturbing the simple autoencoder <autoencoder_perturbations/perturbations>
    A deep autoencoder <deep_autoencoder/autoencoder>
+   A convolutional autoencoder <convolutional_autoencoder/autoencoder>
    
-
 .. toctree::
    :titlesonly:
    :maxdepth: 1
