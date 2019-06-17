@@ -26,7 +26,7 @@ f=open("run.txt","w+")
 count=1
 
 start_day=datetime.datetime(1969,  1,  1,  0)
-end_day  =datetime.datetime(1978, 12, 31, 23)
+end_day  =datetime.datetime(1989, 12, 31, 23)
 
 current_day=start_day
 while current_day<=end_day:

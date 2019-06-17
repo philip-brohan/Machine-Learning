@@ -13,7 +13,7 @@ import numpy
 from glob import glob
 
 # How many epochs to train for
-n_epochs=49
+n_epochs=50
 
 # File names for the serialised tensors to train on
 input_file_dir=(("%s/Machine-Learning-experiments/datasets/"+
@@ -79,7 +79,7 @@ def load_observations(file_name):
                                       'training/2009','test/2009')
    sict=tf.read_file(file_name) # serialised
    ict=tf.parse_tensor(sict,numpy.float32)
-   ict=tf.reshape(ict,[26,])
+   ict=tf.reshape(ict,[32,])
    return ict
 obs_data = Dataset.from_tensor_slices(train_tfd)
 obs_data = obs_data.repeat(n_epochs)
@@ -100,15 +100,21 @@ test_data = Dataset.zip((obs_test_data, field_test_data))
 #   obs->dense network->convolutional network->field
 
 # Input placeholder
-original = tf.keras.layers.Input(shape=(26,))
+original = tf.keras.layers.Input(shape=(32,))
+#x = tf.keras.layers.Dropout(0.1)(original)
 
-# Minimal dense obs pprocessing layer
-x = tf.keras.layers.Dense(288)(original)
+# Obs processing layers
+x = tf.keras.layers.Dense(64)(original)
 x = tf.keras.layers.LeakyReLU()(x)
-x = tf.keras.layers.Dense(144)(x)
+x = tf.keras.layers.Dropout(0.5)(x)
+x = tf.keras.layers.Dense(64)(x)
 x = tf.keras.layers.LeakyReLU()(x)
+#x = tf.keras.layers.Dropout(0.5)(x)
 
 # Need to make a 3x6x8 layer for decoding
+x = tf.keras.layers.Dense(144,
+    activity_regularizer=tf.keras.regularizers.l1(10e-5))(x)
+x = tf.keras.layers.LeakyReLU()(x)
 encoded = tf.keras.layers.Reshape(target_shape=(3,6,8,))(x)
 
 # Decoding layers

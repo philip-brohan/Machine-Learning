@@ -18,8 +18,8 @@ import os
 # Get the DWR station locations
 import DWR
 obs=DWR.load_observations('prmsl',
-                          datetime.datetime(1903,10,1,6,30),
-                          datetime.datetime(1903,10,1,7,30))
+                          datetime.datetime(1903,10,1,7,30),
+                          datetime.datetime(1903,10,1,8,30))
 
 import argparse
 parser = argparse.ArgumentParser()

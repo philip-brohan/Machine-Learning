@@ -64,8 +64,8 @@ newcube = iris.cube.Cube(newdata,
 # Make the fake observations
 import DWR
 obs=DWR.load_observations('prmsl',
-                          datetime.datetime(1903,10,1,6,30),
-                          datetime.datetime(1903,10,1,7,30))
+                          datetime.datetime(1903,10,1,7,30),
+                          datetime.datetime(1903,10,1,8,30))
 ensemble=[]
 for index, row in obs.iterrows():
     ensemble.append(ic.interpolate(
@@ -75,13 +75,13 @@ for index, row in obs.iterrows():
 ensemble = numpy.array(ensemble, dtype=numpy.float32)
 ensemble = normalise(ensemble)
 obs_t = tf.convert_to_tensor(ensemble, numpy.float32)
-obs_t = tf.reshape(obs_t,[1,26])
+obs_t = tf.reshape(obs_t,[1,32])
 
 # Get the assimilation model
 model_save_file=("%s/Machine-Learning-experiments/"+
                  "oldstyle_assimilation/"+
                  "saved_models/Epoch_%04d") % (
-                    os.getenv('SCRATCH'),49)
+                    os.getenv('SCRATCH'),50)
 autoencoder=tf.keras.models.load_model(model_save_file)
 
 fig=Figure(figsize=(9.6,10.8),  # 1/2 HD
@@ -171,8 +171,8 @@ ax.scatter(x=pm.data.flatten()/100,
            alpha=0.5,
            marker='.',
            s=3)
-ax.set(ylabel='Original', 
-       xlabel='Encoded')
+ax.set(ylabel='20CR2c', 
+       xlabel='Constructed')
 ax.grid(color='black',
         alpha=0.2,
         linestyle='-', 
@@ -183,7 +183,7 @@ ax.grid(color='black',
 history_save_file=("%s/Machine-Learning-experiments/"+
               "oldstyle_assimilation/"+
               "saved_models/history_to_%04d.pkl") % (
-                 os.getenv('SCRATCH'),49)
+                 os.getenv('SCRATCH'),50)
 history=pickle.load( open( history_save_file, "rb" ) )
 ax=fig.add_axes([0.62,0.05,0.35,0.4])
 # Axes ranges from data

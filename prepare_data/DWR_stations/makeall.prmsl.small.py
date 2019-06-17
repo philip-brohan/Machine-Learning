@@ -3,10 +3,9 @@
 # Make a list of the commands needed to make a few hundred tf data files
 #  for training the autoencoder.
 
-# Get one data file every 5 days+6 hours over the selected years 
-#  They should be far enough apart to be mostly independent.
+# Get one data file every 6 hours over the selected years 
 
-# Partition off 1/10 of them to be test data
+# Do the same with 2009 to be test data
 
 import os
 import datetime
@@ -24,7 +23,7 @@ def is_done(year,month,day,hour,group):
 f=open("run.txt","w+")
 
 start_day=datetime.datetime(1969,  1,  1,  0)
-end_day  =datetime.datetime(1969, 12, 31, 23)
+end_day  =datetime.datetime(1989, 12, 31, 23)
 
 current_day=start_day
 while current_day<=end_day:
