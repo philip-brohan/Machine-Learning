@@ -17,7 +17,12 @@ This page documents my attempts to learn and use ML methods. I chose to use `Ten
    Perturbing the simple autoencoder <autoencoder_perturbations/perturbations>
    A deep autoencoder <deep_autoencoder/autoencoder>
    A convolutional autoencoder <convolutional_autoencoder/autoencoder>
-   
+ 
+.. toctree::
+   :maxdepth: 1
+
+   Old-style assimilation <oldstyle_assimilation/assimilation>
+  
 .. toctree::
    :titlesonly:
    :maxdepth: 1
@@ -25,4 +30,4 @@ This page documents my attempts to learn and use ML methods. I chose to use `Ten
    ML Utilities package <package/ML_Utilities>
    Small Print <credits>
 
-This document is crown copyright (2019). It is published under the terms of the `Open Government Licence <https://www.nationalarchives.gov.uk/doc/open-government-licence/version/2/>`_.
+This document and the data associated with it are crown copyright (2019) and licensed under the terms of the `Open Government Licence <https://www.nationalarchives.gov.uk/doc/open-government-licence/version/2/>`_. All code included is licensed under the terms of the `GNU Lesser General Public License <https://www.gnu.org/licenses/lgpl.html>`_.
