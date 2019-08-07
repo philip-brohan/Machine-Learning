@@ -17,6 +17,7 @@ This page documents my attempts to learn and use ML methods. I chose to use `Ten
    Perturbing the simple autoencoder <autoencoder_perturbations/perturbations>
    A deep autoencoder <deep_autoencoder/autoencoder>
    A convolutional autoencoder <convolutional_autoencoder/autoencoder>
+   Perturbing the convolutional autoencoder <convolutional_perturbations/perturbations>
  
 .. toctree::
    :maxdepth: 1
