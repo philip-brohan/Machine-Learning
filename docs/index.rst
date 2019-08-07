@@ -22,6 +22,7 @@ This page documents my attempts to learn and use ML methods. I chose to use `Ten
    :maxdepth: 1
 
    Old-style assimilation <oldstyle_assimilation/assimilation>
+   Old-style assimilation of precipitation <oldstyle_assimilation/prate/assimilation>
   
 .. toctree::
    :titlesonly:

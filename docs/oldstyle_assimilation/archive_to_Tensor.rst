@@ -9,7 +9,7 @@ We :doc:`already have the analysis fields <../prepare_data/archive_to_Tensor>`, 
 
 If we do that every 6hours over an extended period, we make a large batch of training data, and it will be possible to match each target field with an obs tensor. We actually need two such datasets, a large one for training models, and a smaller one for testing them. This script makes the list of commands needed to make all the training and test data, and these commands can be run `in parallel <http://brohan.org/offline_assimilation/tools/parallel.html>`_.
 
-.. literalinclude:: ../../prepare_data/makeall.prmsl.py
+.. literalinclude:: ../../prepare_data/1916_obs/makeall.prmsl.py
 
 
 

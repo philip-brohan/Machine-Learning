@@ -13,7 +13,8 @@ import datetime
 
 # Function to check if the job is already done for this timepoint
 def is_done(year,month,day,hour,group):
-    op_file_name=("%s/Machine-Learning-experiments/datasets/DWR/20CR2c/prmsl/" +
+    op_file_name=("%s/Machine-Learning-experiments/datasets/" +
+                  "obs_1916/20CR2c/prmsl/" +
                   "%s/%04d-%02d-%02d:%02d.tfd") % (
                             os.getenv('SCRATCH'),group,
                             year,month,day,hour)
