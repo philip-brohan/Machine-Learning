@@ -51,15 +51,12 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../simple_autoencoder/autoencoder.html">Getting started - a simple autoencoder</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="../../perturbations.html">Perturbing the simple autoencoder</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../deep_autoencoder/autoencoder.html">A deep autoencoder</a></li>
-<<<<<<< HEAD
 <li class="toctree-l1"><a class="reference internal" href="../../../convolutional_autoencoder/autoencoder.html">A convolutional autoencoder</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../convolutional_perturbations/perturbations.html">Perturbing the convolutional autoencoder</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../oldstyle_assimilation/assimilation.html">Old-style assimilation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../oldstyle_assimilation/prate/assimilation.html">Old-style assimilation of precipitation</a></li>
-=======
->>>>>>> 301d851c81924423c5d1c8e8f5d5c648f457c06b
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../package/ML_Utilities.html">ML Utilities package</a></li>
@@ -207,7 +204,7 @@ Please <a href="https://github.com/philip-brohan/Machine-Learning/issues/new">ra
 </div>
 <p>Somewhat to my suprise, this does work to an extent (compare <a class="reference internal" href="../../../simple_autoencoder/summary.html"><span class="doc">prmsl</span></a>, <a class="reference internal" href="../air.2m/autoencoder.html"><span class="doc">air.2m</span></a>). It’s only using 12 neurons(why)?, it’s overfitted (best at 10 epochs, why?), but it’s not hopeless. More cunning approaches to normalisation, and model parameters, might make a big improvement.</p>
 <div class="figure align-center" id="id1" style="width: 95%">
-<a class="reference internal image-reference" href="../../../_images/comparison_full17.png"><img alt="../../../_images/comparison_full17.png" src="../../../_images/comparison_full17.png" style="width: 95%;" /></a>
+<a class="reference internal image-reference" href="../../../_images/comparison_full15.png"><img alt="../../../_images/comparison_full15.png" src="../../../_images/comparison_full15.png" style="width: 95%;" /></a>
 <p class="caption"><span class="caption-text">On the left, the model weights: The boxplot in the centre shows the weights associated with each neuron in the hidden layer, arranged in order, largest to smallest. Negative weights have been converted to positive (and the sign of the associated output layer weights switched accordingly). The colourmaps on top are the weights, for each hidden layer neuron, for each input field location (so a lat:lon map). They are aranged in the same order as the hidden layer weights (so if hidden-layer neuron 3 has the largest weight, the input layer weights for neuron 3 are shown at top left). The colourmaps on the bottom are the output layer weights, arranged in the same way.
 Top right, a sample precipitation field (note, after square-root transform): Original in red, after passing through the autoencoder in blue.
 Bottom right, training progress: Loss v. no. of training epochs.</span></p>
