@@ -17,6 +17,7 @@ This page documents my attempts to learn and use ML methods. I chose to use `Ten
    Perturbing the simple autoencoder <autoencoder_perturbations/perturbations>
    A deep autoencoder <deep_autoencoder/autoencoder>
    A convolutional autoencoder <convolutional_autoencoder/autoencoder>
+<<<<<<< HEAD
    Perturbing the convolutional autoencoder <convolutional_perturbations/perturbations>
  
 .. toctree::
@@ -25,6 +26,9 @@ This page documents my attempts to learn and use ML methods. I chose to use `Ten
    Old-style assimilation <oldstyle_assimilation/assimilation>
    Old-style assimilation of precipitation <oldstyle_assimilation/prate/assimilation>
   
+=======
+   
+>>>>>>> 301d851c81924423c5d1c8e8f5d5c648f457c06b
 .. toctree::
    :titlesonly:
    :maxdepth: 1

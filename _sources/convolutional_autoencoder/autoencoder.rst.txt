@@ -21,4 +21,8 @@ For representing MSLP fields, convolution is the way to go: this autoencoder wor
 Script to make the figure
 -------------------------
 
+<<<<<<< HEAD
 .. literalinclude:: ../../experiments/convolutional_autoencoder/validation/compare_results.py
+=======
+.. literalinclude:: ../../experiments/_autoencoder/validation/compare_results.py
+>>>>>>> 301d851c81924423c5d1c8e8f5d5c648f457c06b
