@@ -30,11 +30,15 @@ ic=twcr.load('air.2m',datetime.datetime(2009,3,12,6),
 ic=ic.extract(iris.Constraint(member=1))
 
 # Normalisation - K to mean=0, sd=1 - and back
-normalise=ML_Utilities.get_normalise_function(source='20CR2c',
-                                              variable='air.2m')
-unnormalise=ML_Utilities.get_unnormalise_function(source='20CR2c',
-                                                  variable='air.2m')
-
+def normalise(x):
+     x -= 280
+     x /= 50
+     return x
+def unnormalise(x):
+     x *= 50
+     x += 280
+     return x
+     
 # Get the autoencoder
 model_save_file=("%s/Machine-Learning-experiments/"+
            "simple_autoencoder_variables/air.2m/"+

@@ -1,5 +1,5 @@
 An all-convolutional autoencoder
-===========================
+================================
 
 The original :doc:`convolutional autoencoder <../../convolutional_autoencoder/autoencoder>` alternates convolutional layers with max-pooling layers or upsampling layers to reduce or expand the state. 
 
