@@ -14,7 +14,7 @@ I hoped this would fix the problems with relu, by dealing sensibly with negative
 
    On the left, the model weights: The boxplot in the centre shows the weights associated with each neuron in the hidden layer, arranged in order, largest to smallest. Negative weights have been converted to positive (and the sign of the associated output layer weights switched accordingly). The colourmaps on top are the weights, for each hidden layer neuron, for each input field location (so a lat:lon map). They are aranged in the same order as the hidden layer weights (so if hidden-layer neuron 3 has the largest weight, the input layer weights for neuron 3 are shown at top left). The colourmaps on the bottom are the output layer weights, arranged in the same way.
    Top right, a sample pressure field: Original in red, after passing through the autoencoder in blue.
-   Bottom right, training progress: Loss v. no. of training epochs.
+   Bottom right, a scatterplot of original v. encoded pressures for the sample field, and a graph of training progress: Loss v. no. of training epochs.
 
 
 Script to make the figure

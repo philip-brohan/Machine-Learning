@@ -46,8 +46,16 @@
 <h3><a href="../index.html">Table of Contents</a></h3>
 <ul class="current">
 <li class="toctree-l1 current"><a class="reference internal" href="prepare_data.html">Getting climate data into TensorFlow</a></li>
+</ul>
+<ul>
 <li class="toctree-l1"><a class="reference internal" href="../simple_autoencoder/autoencoder.html">Getting started - a simple autoencoder</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../autoencoder_perturbations/perturbations.html">Perturbing the simple autoencoder</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../deep_autoencoder/autoencoder.html">A deep autoencoder</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../convolutional_autoencoder/autoencoder.html">A convolutional autoencoder</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../oldstyle_assimilation/assimilation.html">Old-style assimilation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../oldstyle_assimilation/prate/assimilation.html">Old-style assimilation of precipitation</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../package/ML_Utilities.html">ML Utilities package</a></li>
@@ -80,12 +88,12 @@ Please <a href="https://github.com/philip-brohan/Machine-Learning/issues/new">ra
 <span class="kn">import</span> <span class="nn">datetime</span>
 <span class="kn">import</span> <span class="nn">IRData.twcr</span> <span class="k">as</span> <span class="nn">twcr</span>
 
-<span class="k">for</span> <span class="n">year</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1969</span><span class="p">,</span><span class="mi">2010</span><span class="p">):</span>
+<span class="k">for</span> <span class="n">year</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1969</span><span class="p">,</span><span class="mi">1990</span><span class="p">):</span>
     <span class="c1"># 2c is in 1 year batches so month and day don&#39;t matter</span>
     <span class="n">dte</span><span class="o">=</span><span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="p">(</span><span class="n">year</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
     <span class="n">twcr</span><span class="o">.</span><span class="n">fetch</span><span class="p">(</span><span class="s1">&#39;prmsl&#39;</span><span class="p">,</span><span class="n">dte</span><span class="p">,</span><span class="n">version</span><span class="o">=</span><span class="s1">&#39;2c&#39;</span><span class="p">)</span>
-    <span class="n">twcr</span><span class="o">.</span><span class="n">fetch</span><span class="p">(</span><span class="s1">&#39;air.2m&#39;</span><span class="p">,</span><span class="n">dte</span><span class="p">,</span><span class="n">version</span><span class="o">=</span><span class="s1">&#39;2c&#39;</span><span class="p">)</span>
-    <span class="n">twcr</span><span class="o">.</span><span class="n">fetch</span><span class="p">(</span><span class="s1">&#39;prate&#39;</span><span class="p">,</span><span class="n">dte</span><span class="p">,</span><span class="n">version</span><span class="o">=</span><span class="s1">&#39;2c&#39;</span><span class="p">)</span>
+    <span class="c1">#twcr.fetch(&#39;air.2m&#39;,dte,version=&#39;2c&#39;)</span>
+    <span class="c1">#twcr.fetch(&#39;prate&#39;,dte,version=&#39;2c&#39;)</span>
 </pre></div>
 </div>
 <p>We can then use <a class="reference external" href="http://brohan.org/IRData/">IRData</a> again to load a single field as a <a class="reference external" href="https://scitools.org.uk/iris/docs/v2.2/userguide/loading_iris_cubes.html">Iris cube</a>. The cube.data field is a Numpy array that can be directly converted to a tensor, serialised, and written to disc:</p>

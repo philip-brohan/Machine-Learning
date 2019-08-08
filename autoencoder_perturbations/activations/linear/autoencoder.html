@@ -16,7 +16,7 @@
     <script type="text/javascript" src="../../../_static/language_data.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
-    <link rel="next" title="The ML_Utilities package: Functions for data loading and normalisation" href="../../../package/ML_Utilities.html" />
+    <link rel="next" title="Simple autoencoder with elu activation (rather than tanh)" href="../elu/autoencoder.html" />
     <link rel="prev" title="Regularizing the simple autoencoder" href="../../regularized/autoencoder.html" /> 
   </head><body>
     <div class="related" role="navigation" aria-label="related navigation">
@@ -29,7 +29,7 @@
           <a href="../../../py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
         <li class="right" >
-          <a href="../../../package/ML_Utilities.html" title="The ML_Utilities package: Functions for data loading and normalisation"
+          <a href="../elu/autoencoder.html" title="Simple autoencoder with elu activation (rather than tanh)"
              accesskey="N">next</a> |</li>
         <li class="right" >
           <a href="../../regularized/autoencoder.html" title="Regularizing the simple autoencoder"
@@ -44,10 +44,19 @@
               <img class="logo" src="../../../_static/Weather-Network.png" alt="Logo"/>
             </a></p>
 <h3><a href="../../../index.html">Table of Contents</a></h3>
-<ul class="current">
+<ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../prepare_data/prepare_data.html">Getting climate data into TensorFlow</a></li>
+</ul>
+<ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../../../simple_autoencoder/autoencoder.html">Getting started - a simple autoencoder</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="../../perturbations.html">Perturbing the simple autoencoder</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../deep_autoencoder/autoencoder.html">A deep autoencoder</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../convolutional_autoencoder/autoencoder.html">A convolutional autoencoder</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../convolutional_perturbations/perturbations.html">Perturbing the convolutional autoencoder</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../oldstyle_assimilation/assimilation.html">Old-style assimilation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../oldstyle_assimilation/prate/assimilation.html">Old-style assimilation of precipitation</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../package/ML_Utilities.html">ML Utilities package</a></li>
@@ -186,9 +195,10 @@ Bottom right, training progress: Loss v. no. of training epochs.</span></p>
 
 <span class="c1"># Get the autoencoder</span>
 <span class="n">model_save_file</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">/Machine-Learning-experiments/&quot;</span><span class="o">+</span>
-           <span class="s2">&quot;simple_autoencoder_activations/linear/&quot;</span><span class="o">+</span>
-           <span class="s2">&quot;saved_models/Epoch_</span><span class="si">%04d</span><span class="s2">&quot;</span><span class="p">)</span> <span class="o">%</span> <span class="p">(</span>
-                 <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s1">&#39;SCRATCH&#39;</span><span class="p">),</span><span class="mi">100</span><span class="p">)</span>
+                  <span class="s2">&quot;simple_autoencoder_activations/&quot;</span><span class="o">+</span>
+                  <span class="s2">&quot;linear/&quot;</span><span class="o">+</span>
+                  <span class="s2">&quot;saved_models/Epoch_</span><span class="si">%04d</span><span class="s2">&quot;</span><span class="p">)</span> <span class="o">%</span> <span class="p">(</span>
+                    <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s1">&#39;SCRATCH&#39;</span><span class="p">),</span><span class="mi">100</span><span class="p">)</span>
 <span class="n">autoencoder</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">keras</span><span class="o">.</span><span class="n">models</span><span class="o">.</span><span class="n">load_model</span><span class="p">(</span><span class="n">model_save_file</span><span class="p">)</span>
 <span class="c1"># Get the order of the hidden weights - most to least important</span>
 <span class="n">order</span><span class="o">=</span><span class="n">numpy</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">autoencoder</span><span class="o">.</span><span class="n">get_weights</span><span class="p">()[</span><span class="mi">1</span><span class="p">]))[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
@@ -329,18 +339,50 @@ Bottom right, training progress: Loss v. no. of training epochs.</span></p>
                      <span class="n">vmin</span><span class="o">=</span><span class="n">vmin</span><span class="p">,</span><span class="n">vmax</span><span class="o">=</span><span class="n">vmax</span><span class="p">)</span>
         <span class="n">count</span> <span class="o">+=</span> <span class="mi">1</span>
 
+<span class="c1"># Scatterplot of encoded v original</span>
+<span class="n">ax</span><span class="o">=</span><span class="n">fig</span><span class="o">.</span><span class="n">add_axes</span><span class="p">([</span><span class="mf">0.54</span><span class="p">,</span><span class="mf">0.05</span><span class="p">,</span><span class="mf">0.225</span><span class="p">,</span><span class="mf">0.4</span><span class="p">])</span>
+<span class="n">aspect</span><span class="o">=.</span><span class="mi">225</span><span class="o">/.</span><span class="mi">4</span><span class="o">*</span><span class="mi">16</span><span class="o">/</span><span class="mi">9</span>
+<span class="c1"># Axes ranges from data</span>
+<span class="n">dmin</span><span class="o">=</span><span class="nb">min</span><span class="p">(</span><span class="n">ic</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span><span class="n">pm</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">min</span><span class="p">())</span>
+<span class="n">dmax</span><span class="o">=</span><span class="nb">max</span><span class="p">(</span><span class="n">ic</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">max</span><span class="p">(),</span><span class="n">pm</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">max</span><span class="p">())</span>
+<span class="n">dmean</span><span class="o">=</span><span class="p">(</span><span class="n">dmin</span><span class="o">+</span><span class="n">dmax</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span>
+<span class="n">dmax</span><span class="o">=</span><span class="n">dmean</span><span class="o">+</span><span class="p">(</span><span class="n">dmax</span><span class="o">-</span><span class="n">dmean</span><span class="p">)</span><span class="o">*</span><span class="mf">1.05</span>
+<span class="n">dmin</span><span class="o">=</span><span class="n">dmean</span><span class="o">-</span><span class="p">(</span><span class="n">dmean</span><span class="o">-</span><span class="n">dmin</span><span class="p">)</span><span class="o">*</span><span class="mf">1.05</span>
+<span class="k">if</span> <span class="n">aspect</span><span class="o">&lt;</span><span class="mi">1</span><span class="p">:</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">(</span><span class="n">dmin</span><span class="o">/</span><span class="mi">100</span><span class="p">,</span><span class="n">dmax</span><span class="o">/</span><span class="mi">100</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">((</span><span class="n">dmean</span><span class="o">-</span><span class="p">(</span><span class="n">dmean</span><span class="o">-</span><span class="n">dmin</span><span class="p">)</span><span class="o">*</span><span class="n">aspect</span><span class="p">)</span><span class="o">/</span><span class="mi">100</span><span class="p">,</span>
+                <span class="p">(</span><span class="n">dmean</span><span class="o">+</span><span class="p">(</span><span class="n">dmax</span><span class="o">-</span><span class="n">dmean</span><span class="p">)</span><span class="o">*</span><span class="n">aspect</span><span class="p">)</span><span class="o">/</span><span class="mi">100</span><span class="p">)</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">(</span><span class="n">dmin</span><span class="o">/</span><span class="mi">100</span><span class="p">,</span><span class="n">dmax</span><span class="o">/</span><span class="mi">100</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">((</span><span class="n">dmean</span><span class="o">-</span><span class="p">(</span><span class="n">dmean</span><span class="o">-</span><span class="n">dmin</span><span class="p">)</span><span class="o">*</span><span class="n">aspect</span><span class="p">)</span><span class="o">/</span><span class="mi">100</span><span class="p">,</span>
+                <span class="p">(</span><span class="n">dmean</span><span class="o">+</span><span class="p">(</span><span class="n">dmax</span><span class="o">-</span><span class="n">dmean</span><span class="p">)</span><span class="o">*</span><span class="n">aspect</span><span class="p">)</span><span class="o">/</span><span class="mi">100</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">pm</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span><span class="o">/</span><span class="mi">100</span><span class="p">,</span>
+           <span class="n">y</span><span class="o">=</span><span class="n">ic</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span><span class="o">/</span><span class="mi">100</span><span class="p">,</span>
+           <span class="n">c</span><span class="o">=</span><span class="s1">&#39;black&#39;</span><span class="p">,</span>
+           <span class="n">alpha</span><span class="o">=</span><span class="mf">0.25</span><span class="p">,</span>
+           <span class="n">marker</span><span class="o">=</span><span class="s1">&#39;.&#39;</span><span class="p">,</span>
+           <span class="n">s</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">ylabel</span><span class="o">=</span><span class="s1">&#39;Original&#39;</span><span class="p">,</span> 
+       <span class="n">xlabel</span><span class="o">=</span><span class="s1">&#39;Encoded&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">color</span><span class="o">=</span><span class="s1">&#39;black&#39;</span><span class="p">,</span>
+        <span class="n">alpha</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span>
+        <span class="n">linestyle</span><span class="o">=</span><span class="s1">&#39;-&#39;</span><span class="p">,</span> 
+        <span class="n">linewidth</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
+
+
 <span class="c1"># Plot the training history</span>
 <span class="n">history_save_file</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">/Machine-Learning-experiments/&quot;</span><span class="o">+</span>
-                   <span class="s2">&quot;simple_autoencoder_activations/linear/&quot;</span><span class="o">+</span>
+                   <span class="s2">&quot;simple_autoencoder_activations/&quot;</span><span class="o">+</span>
+                   <span class="s2">&quot;linear/&quot;</span><span class="o">+</span>
                    <span class="s2">&quot;saved_models/history_to_</span><span class="si">%04d</span><span class="s2">.pkl&quot;</span><span class="p">)</span> <span class="o">%</span> <span class="p">(</span>
-                      <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s1">&#39;SCRATCH&#39;</span><span class="p">),</span><span class="mi">100</span><span class="p">)</span>
+                    <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s1">&#39;SCRATCH&#39;</span><span class="p">),</span><span class="mi">100</span><span class="p">)</span>
 <span class="n">history</span><span class="o">=</span><span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span> <span class="nb">open</span><span class="p">(</span> <span class="n">history_save_file</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span> <span class="p">)</span> <span class="p">)</span>
-<span class="n">ax</span><span class="o">=</span><span class="n">fig</span><span class="o">.</span><span class="n">add_axes</span><span class="p">([</span><span class="mf">0.55</span><span class="p">,</span><span class="mf">0.05</span><span class="p">,</span><span class="mf">0.425</span><span class="p">,</span><span class="mf">0.4</span><span class="p">])</span>
+<span class="n">ax</span><span class="o">=</span><span class="n">fig</span><span class="o">.</span><span class="n">add_axes</span><span class="p">([</span><span class="mf">0.82</span><span class="p">,</span><span class="mf">0.05</span><span class="p">,</span><span class="mf">0.155</span><span class="p">,</span><span class="mf">0.4</span><span class="p">])</span>
 <span class="c1"># Axes ranges from data</span>
 <span class="n">ax</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="n">history</span><span class="p">[</span><span class="s1">&#39;loss&#39;</span><span class="p">]))</span>
 <span class="n">ax</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">numpy</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">history</span><span class="p">[</span><span class="s1">&#39;loss&#39;</span><span class="p">],</span>
                                            <span class="n">history</span><span class="p">[</span><span class="s1">&#39;val_loss&#39;</span><span class="p">]))))</span>
-<span class="n">ax</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">xlabel</span><span class="o">=</span><span class="s1">&#39;Epochs of training&#39;</span><span class="p">,</span> 
+<span class="n">ax</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">xlabel</span><span class="o">=</span><span class="s1">&#39;Epochs&#39;</span><span class="p">,</span> 
        <span class="n">ylabel</span><span class="o">=</span><span class="s1">&#39;Loss (grey) and validation loss (black)&#39;</span><span class="p">)</span>
 <span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">color</span><span class="o">=</span><span class="s1">&#39;black&#39;</span><span class="p">,</span>
         <span class="n">alpha</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span>
@@ -381,7 +423,7 @@ Bottom right, training progress: Loss v. no. of training epochs.</span></p>
           <a href="../../../py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
         <li class="right" >
-          <a href="../../../package/ML_Utilities.html" title="The ML_Utilities package: Functions for data loading and normalisation"
+          <a href="../elu/autoencoder.html" title="Simple autoencoder with elu activation (rather than tanh)"
              >next</a> |</li>
         <li class="right" >
           <a href="../../regularized/autoencoder.html" title="Regularizing the simple autoencoder"

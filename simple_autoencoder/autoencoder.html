@@ -43,10 +43,19 @@
               <img class="logo" src="../_static/Weather-Network.png" alt="Logo"/>
             </a></p>
 <h3><a href="../index.html">Table of Contents</a></h3>
-<ul class="current">
+<ul>
 <li class="toctree-l1"><a class="reference internal" href="../prepare_data/prepare_data.html">Getting climate data into TensorFlow</a></li>
+</ul>
+<ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Getting started - a simple autoencoder</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../autoencoder_perturbations/perturbations.html">Perturbing the simple autoencoder</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../deep_autoencoder/autoencoder.html">A deep autoencoder</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../convolutional_autoencoder/autoencoder.html">A convolutional autoencoder</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../convolutional_perturbations/perturbations.html">Perturbing the convolutional autoencoder</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../oldstyle_assimilation/assimilation.html">Old-style assimilation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../oldstyle_assimilation/prate/assimilation.html">Old-style assimilation of precipitation</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../package/ML_Utilities.html">ML Utilities package</a></li>
@@ -181,7 +190,7 @@ Please <a href="https://github.com/philip-brohan/Machine-Learning/issues/new">ra
 <p>This runs nicely on my Linux desktop - takes about s/epoch (with 315 training fields) and uses 6 cores (of 8). The validation loss falls from around 0.5 to 0.19 over 100 epochs. So it’s learning something.</p>
 <p>To see exactly what it does, we can compare an original MSLP field with the same field passed through the autoencoder (after 100 epochs training):</p>
 <div class="figure align-center" id="id1" style="width: 95%">
-<a class="reference internal image-reference" href="../_images/comparison_2009-03-12:066.png"><img alt="../_images/comparison_2009-03-12:066.png" src="../_images/comparison_2009-03-12:066.png" style="width: 95%;" /></a>
+<a class="reference internal image-reference" href="../_images/comparison_2009-03-12:06.png"><img alt="../_images/comparison_2009-03-12:06.png" src="../_images/comparison_2009-03-12:06.png" style="width: 95%;" /></a>
 <p class="caption"><span class="caption-text">MSLP contours from 20CR2c for 2009-03-12:12. Original in top panel - after passing through the autoencoder in bottom panel.</span></p>
 </div>
 <div class="line-block">

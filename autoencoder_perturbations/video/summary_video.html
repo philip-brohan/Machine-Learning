@@ -45,10 +45,14 @@
               <img class="logo" src="../../_static/Weather-Network.png" alt="Logo"/>
             </a></p>
 <h3><a href="../../index.html">Table of Contents</a></h3>
-<ul class="current">
+<ul>
 <li class="toctree-l1"><a class="reference internal" href="../../prepare_data/prepare_data.html">Getting climate data into TensorFlow</a></li>
+</ul>
+<ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../../simple_autoencoder/autoencoder.html">Getting started - a simple autoencoder</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="../perturbations.html">Perturbing the simple autoencoder</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../deep_autoencoder/autoencoder.html">A deep autoencoder</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../convolutional_autoencoder/autoencoder.html">A convolutional autoencoder</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../package/ML_Utilities.html">ML Utilities package</a></li>
@@ -365,18 +369,46 @@ Please <a href="https://github.com/philip-brohan/Machine-Learning/issues/new">ra
                      <span class="n">vmin</span><span class="o">=</span><span class="n">vmin</span><span class="p">,</span><span class="n">vmax</span><span class="o">=</span><span class="n">vmax</span><span class="p">)</span>
         <span class="n">count</span> <span class="o">+=</span> <span class="mi">1</span>
 
+<span class="c1"># Scatterplot of encoded v original</span>
+<span class="n">ax</span><span class="o">=</span><span class="n">fig</span><span class="o">.</span><span class="n">add_axes</span><span class="p">([</span><span class="mf">0.54</span><span class="p">,</span><span class="mf">0.05</span><span class="p">,</span><span class="mf">0.225</span><span class="p">,</span><span class="mf">0.4</span><span class="p">])</span>
+<span class="n">aspect</span><span class="o">=.</span><span class="mi">225</span><span class="o">/.</span><span class="mi">4</span><span class="o">*</span><span class="mi">16</span><span class="o">/</span><span class="mi">9</span>
+<span class="c1"># Axes ranges from data</span>
+<span class="n">dmin</span><span class="o">=</span><span class="nb">min</span><span class="p">(</span><span class="n">ic</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span><span class="n">pm</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">min</span><span class="p">())</span>
+<span class="n">dmax</span><span class="o">=</span><span class="nb">max</span><span class="p">(</span><span class="n">ic</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">max</span><span class="p">(),</span><span class="n">pm</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">max</span><span class="p">())</span>
+<span class="n">dmean</span><span class="o">=</span><span class="p">(</span><span class="n">dmin</span><span class="o">+</span><span class="n">dmax</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span>
+<span class="n">dmax</span><span class="o">=</span><span class="n">dmean</span><span class="o">+</span><span class="p">(</span><span class="n">dmax</span><span class="o">-</span><span class="n">dmean</span><span class="p">)</span><span class="o">*</span><span class="mf">1.05</span>
+<span class="n">dmin</span><span class="o">=</span><span class="n">dmean</span><span class="o">-</span><span class="p">(</span><span class="n">dmean</span><span class="o">-</span><span class="n">dmin</span><span class="p">)</span><span class="o">*</span><span class="mf">1.05</span>
+<span class="k">if</span> <span class="n">aspect</span><span class="o">&lt;</span><span class="mi">1</span><span class="p">:</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">(</span><span class="n">dmin</span><span class="o">/</span><span class="mi">100</span><span class="p">,</span><span class="n">dmax</span><span class="o">/</span><span class="mi">100</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">((</span><span class="n">dmean</span><span class="o">-</span><span class="p">(</span><span class="n">dmean</span><span class="o">-</span><span class="n">dmin</span><span class="p">)</span><span class="o">*</span><span class="n">aspect</span><span class="p">)</span><span class="o">/</span><span class="mi">100</span><span class="p">,</span>
+                <span class="p">(</span><span class="n">dmean</span><span class="o">+</span><span class="p">(</span><span class="n">dmax</span><span class="o">-</span><span class="n">dmean</span><span class="p">)</span><span class="o">*</span><span class="n">aspect</span><span class="p">)</span><span class="o">/</span><span class="mi">100</span><span class="p">)</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">(</span><span class="n">dmin</span><span class="o">/</span><span class="mi">100</span><span class="p">,</span><span class="n">dmax</span><span class="o">/</span><span class="mi">100</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">((</span><span class="n">dmean</span><span class="o">-</span><span class="p">(</span><span class="n">dmean</span><span class="o">-</span><span class="n">dmin</span><span class="p">)</span><span class="o">*</span><span class="n">aspect</span><span class="p">)</span><span class="o">/</span><span class="mi">100</span><span class="p">,</span>
+                <span class="p">(</span><span class="n">dmean</span><span class="o">+</span><span class="p">(</span><span class="n">dmax</span><span class="o">-</span><span class="n">dmean</span><span class="p">)</span><span class="o">*</span><span class="n">aspect</span><span class="p">)</span><span class="o">/</span><span class="mi">100</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">pm</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span><span class="o">/</span><span class="mi">100</span><span class="p">,</span>
+           <span class="n">y</span><span class="o">=</span><span class="n">ic</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span><span class="o">/</span><span class="mi">100</span><span class="p">,</span>
+           <span class="n">c</span><span class="o">=</span><span class="s1">&#39;black&#39;</span><span class="p">,</span>
+           <span class="n">alpha</span><span class="o">=</span><span class="mf">0.25</span><span class="p">,</span>
+           <span class="n">marker</span><span class="o">=</span><span class="s1">&#39;.&#39;</span><span class="p">,</span>
+           <span class="n">s</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">ylabel</span><span class="o">=</span><span class="s1">&#39;Original&#39;</span><span class="p">,</span> 
+       <span class="n">xlabel</span><span class="o">=</span><span class="s1">&#39;Encoded&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">color</span><span class="o">=</span><span class="s1">&#39;black&#39;</span><span class="p">,</span>
+        <span class="n">alpha</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span>
+        <span class="n">linestyle</span><span class="o">=</span><span class="s1">&#39;-&#39;</span><span class="p">,</span> 
+        <span class="n">linewidth</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
+
 <span class="c1"># Plot the training history</span>
 <span class="n">history_save_file</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">/Machine-Learning-experiments/&quot;</span><span class="o">+</span>
                    <span class="s2">&quot;simple_autoencoder_instrumented/&quot;</span><span class="o">+</span>
                    <span class="s2">&quot;saved_models/history_to_</span><span class="si">%04d</span><span class="s2">.pkl&quot;</span><span class="p">)</span> <span class="o">%</span> <span class="p">(</span>
                           <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s1">&#39;SCRATCH&#39;</span><span class="p">),</span><span class="mi">1000</span><span class="p">)</span>
 <span class="n">history</span><span class="o">=</span><span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span> <span class="nb">open</span><span class="p">(</span> <span class="n">history_save_file</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span> <span class="p">)</span> <span class="p">)</span>
-<span class="n">ax</span><span class="o">=</span><span class="n">fig</span><span class="o">.</span><span class="n">add_axes</span><span class="p">([</span><span class="mf">0.55</span><span class="p">,</span><span class="mf">0.05</span><span class="p">,</span><span class="mf">0.425</span><span class="p">,</span><span class="mf">0.4</span><span class="p">])</span>
+<span class="n">ax</span><span class="o">=</span><span class="n">fig</span><span class="o">.</span><span class="n">add_axes</span><span class="p">([</span><span class="mf">0.82</span><span class="p">,</span><span class="mf">0.05</span><span class="p">,</span><span class="mf">0.155</span><span class="p">,</span><span class="mf">0.4</span><span class="p">])</span>
 <span class="c1"># Axes ranges from data</span>
 <span class="n">ax</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="n">history</span><span class="p">[</span><span class="s1">&#39;loss&#39;</span><span class="p">]))</span>
 <span class="n">ax</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">numpy</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">history</span><span class="p">[</span><span class="s1">&#39;loss&#39;</span><span class="p">]))</span>
-<span class="c1">#ax.set_ylim(0,numpy.max(numpy.concatenate((history[&#39;loss&#39;],</span>
-<span class="c1">#                                           history[&#39;val_loss&#39;]))))</span>
 <span class="n">ax</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">xlabel</span><span class="o">=</span><span class="s1">&#39;Epochs of training&#39;</span><span class="p">,</span> 
        <span class="n">ylabel</span><span class="o">=</span><span class="s1">&#39;Loss&#39;</span><span class="p">)</span>
 <span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">color</span><span class="o">=</span><span class="s1">&#39;black&#39;</span><span class="p">,</span>
@@ -388,11 +420,6 @@ Please <a href="https://github.com/philip-brohan/Machine-Learning/issues/new">ra
         <span class="n">color</span><span class="o">=</span><span class="s1">&#39;grey&#39;</span><span class="p">,</span>
         <span class="n">linestyle</span><span class="o">=</span><span class="s1">&#39;-&#39;</span><span class="p">,</span>
         <span class="n">linewidth</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
-<span class="c1">#ax.plot(range(len(history[&#39;val_loss&#39;][0:args.epoch])),</span>
-<span class="c1">#        history[&#39;val_loss&#39;][0:args.epoch],</span>
-<span class="c1">#        color=&#39;black&#39;,</span>
-<span class="c1">#        linestyle=&#39;-&#39;,</span>
-<span class="c1">#        linewidth=2)</span>
 
 <span class="c1"># Render the figure as a png</span>
 <span class="n">figfile</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">/Machine-Learning-experiments/&quot;</span><span class="o">+</span>
@@ -451,7 +478,7 @@ Please <a href="https://github.com/philip-brohan/Machine-Learning/issues/new">ra
 <p>To turn the thousands of images into a movie, use <a class="reference external" href="http://www.ffmpeg.org">ffmpeg</a></p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="ch">#!/bin/bash</span>
 
-<span class="n">ffmpeg</span> <span class="o">-</span><span class="n">r</span> <span class="mi">12</span> <span class="o">-</span><span class="n">pattern_type</span> <span class="n">glob</span> <span class="o">-</span><span class="n">i</span> <span class="o">/</span><span class="n">scratch</span><span class="o">/</span><span class="n">hadpb</span><span class="o">/</span><span class="n">Machine</span><span class="o">-</span><span class="n">Learning</span><span class="o">-</span><span class="n">experiments</span><span class="o">/</span><span class="n">simple_autoencoder_instrumented</span><span class="o">/</span><span class="n">images</span><span class="o">/</span><span class="n">comparison_</span><span class="o">*.</span><span class="n">png</span> <span class="o">-</span><span class="n">c</span><span class="p">:</span><span class="n">v</span> <span class="n">libx264</span> <span class="o">-</span><span class="n">preset</span> <span class="n">slow</span> <span class="o">-</span><span class="n">tune</span> <span class="n">animation</span> <span class="o">-</span><span class="n">profile</span><span class="p">:</span><span class="n">v</span> <span class="n">high</span> <span class="o">-</span><span class="n">level</span> <span class="mf">4.2</span> <span class="o">-</span><span class="n">pix_fmt</span> <span class="n">yuv420p</span> <span class="o">-</span><span class="n">crf</span> <span class="mi">25</span> <span class="o">-</span><span class="n">c</span><span class="p">:</span><span class="n">a</span> <span class="n">copy</span> <span class="n">full</span><span class="o">.</span><span class="n">mp4</span>
+<span class="n">ffmpeg</span> <span class="o">-</span><span class="n">r</span> <span class="mi">12</span> <span class="o">-</span><span class="n">pattern_type</span> <span class="n">glob</span> <span class="o">-</span><span class="n">i</span> <span class="o">/</span><span class="n">scratch</span><span class="o">/</span><span class="n">hadpb</span><span class="o">/</span><span class="n">Machine</span><span class="o">-</span><span class="n">Learning</span><span class="o">-</span><span class="n">experiments</span><span class="o">/</span><span class="n">simple_autoencoder_instrumented</span><span class="o">/</span><span class="n">images</span><span class="o">/</span><span class="n">comparison_</span>\<span class="o">*.</span><span class="n">png</span> <span class="o">-</span><span class="n">c</span><span class="p">:</span><span class="n">v</span> <span class="n">libx264</span> <span class="o">-</span><span class="n">preset</span> <span class="n">slow</span> <span class="o">-</span><span class="n">tune</span> <span class="n">animation</span> <span class="o">-</span><span class="n">profile</span><span class="p">:</span><span class="n">v</span> <span class="n">high</span> <span class="o">-</span><span class="n">level</span> <span class="mf">4.2</span> <span class="o">-</span><span class="n">pix_fmt</span> <span class="n">yuv420p</span> <span class="o">-</span><span class="n">crf</span> <span class="mi">25</span> <span class="o">-</span><span class="n">c</span><span class="p">:</span><span class="n">a</span> <span class="n">copy</span> <span class="n">full</span><span class="o">.</span><span class="n">mp4</span>
 
 </pre></div>
 </div>
