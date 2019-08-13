@@ -20,12 +20,9 @@ n_epochs=50
                                          variable='prmsl')
 tr_data = tr_data.repeat(n_epochs)
 
-# Need to reshape the data to have both dimensions divisible by 8 (3*2-fold pool).
 # Also produce a tuple (source,target) for model
 def to_model(ict):
    ict=tf.reshape(ict,[91,180,1])
-   #ict=tf.image.resize_images(ict, (32, 64),
-   #                           align_corners=True)
    return(ict,ict)
 tr_data = tr_data.map(to_model)
 tr_data = tr_data.batch(1)
@@ -96,20 +93,20 @@ padded = LonPadLayer(padding=8)(resized)
 # Encoding layers
 x = tf.keras.layers.Conv2D(16, (3, 3), padding='same')(padded)
 x = tf.keras.layers.LeakyReLU()(x)
-x = tf.keras.layers.Conv2D(8, (3, 3), strides= (2,2), padding='same')(x)
+x = tf.keras.layers.Conv2D(8, (3, 3), strides= (2,2), padding='valid')(x)
 x = tf.keras.layers.LeakyReLU()(x)
-x = tf.keras.layers.Conv2D(8, (3, 3), strides= (2,2), padding='same')(x)
+x = tf.keras.layers.Conv2D(8, (3, 3), strides= (2,2), padding='valid')(x)
 x = tf.keras.layers.LeakyReLU()(x)
-x = tf.keras.layers.Conv2D(8, (3, 3), strides= (2,2), padding='same')(x)
+x = tf.keras.layers.Conv2D(8, (3, 3), strides= (2,2), padding='valid')(x)
 x = tf.keras.layers.LeakyReLU()(x)
 encoded = x
 
 # Decoding layers
-x = tf.keras.layers.Conv2DTranspose(8, (3, 3),  strides= (2,2), padding='same')(encoded)
+x = tf.keras.layers.Conv2DTranspose(8, (3, 3),  strides= (2,2), padding='valid')(encoded)
 x = tf.keras.layers.LeakyReLU()(x)
-x = tf.keras.layers.Conv2DTranspose(8, (3, 3),  strides= (2,2), padding='same')(x)
+x = tf.keras.layers.Conv2DTranspose(8, (3, 3),  strides= (2,2), padding='valid')(x)
 x = tf.keras.layers.LeakyReLU()(x)
-x = tf.keras.layers.Conv2DTranspose(8, (3, 3),  strides= (2,2), padding='same')(x)
+x = tf.keras.layers.Conv2DTranspose(8, (3, 3),  strides= (2,2), padding='valid')(x)
 x = tf.keras.layers.LeakyReLU()(x)
 decoded = tf.keras.layers.Conv2D(1, (3, 3), padding='same')(x)
 # Strip the longitude wrap-around

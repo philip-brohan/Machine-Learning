@@ -4,8 +4,6 @@
 # This version is all-convolutional - it uses strided convolutions
 #  instead of max-pooling, and transpose convolution instead of 
 #  upsampling.
-# Also this version has 4 layers rather than 3 - for a more 
-#  compressed encoded state
 
 import os
 import tensorflow as tf
@@ -14,7 +12,7 @@ import pickle
 import numpy
 
 # How many epochs to train for
-n_epochs=5
+n_epochs=50
 
 # Create TensorFlow Dataset object from the prepared training data
 (tr_data,n_steps) = ML_Utilities.dataset(purpose='training',
@@ -37,7 +35,7 @@ tr_test = tr_test.repeat(n_epochs)
 tr_test = tr_test.map(to_model)
 tr_test = tr_test.batch(1)
 
-# Need to resize data so it's dimensions are a multiple of 32 (5*2-fold pool)
+# Need to resize data so it's dimensions are a multiple of 8 (3*2-fold pool)
 class ResizeLayer(tf.keras.layers.Layer):
    def __init__(self, newsize=None, **kwargs):
       super(ResizeLayer, self).__init__(**kwargs)
@@ -88,8 +86,8 @@ class LonPruneLayer(tf.keras.layers.Layer):
 
 # Input placeholder
 original = tf.keras.layers.Input(shape=(91,180,1,))
-# Resize to have dimensions 2^n+1x2^(n+1)+1
-resized = ResizeLayer(newsize=(129,249))(original)
+# Resize to have dimesions divisible by 8
+resized = ResizeLayer(newsize=(80,160))(original)
 # Wrap-around in longitude for periodic boundary conditions
 padded = LonPadLayer(padding=8)(resized)
 # Encoding layers
@@ -106,17 +104,17 @@ x = tf.keras.layers.LeakyReLU()(x)
 encoded = x
 
 # Decoding layers
-x = tf.keras.layers.Conv2DTranspose(8, (3, 3), strides= (2,2), padding='valid')(encoded)
+x = tf.keras.layers.Conv2DTranspose(8, (3, 3),  strides= (2,2), padding='valid')(encoded)
 x = tf.keras.layers.LeakyReLU()(x)
-x = tf.keras.layers.Conv2DTranspose(8, (3, 3), strides= (2,2), padding='valid')(x)
+x = tf.keras.layers.Conv2DTranspose(8, (3, 3),  strides= (2,2), padding='valid')(x)
 x = tf.keras.layers.LeakyReLU()(x)
-x = tf.keras.layers.Conv2DTranspose(8, (3, 3), strides= (2,2), padding='valid')(x)
+x = tf.keras.layers.Conv2DTranspose(8, (3, 3),  strides= (2,2), padding='valid')(x)
 x = tf.keras.layers.LeakyReLU()(x)
-x = tf.keras.layers.Conv2DTranspose(8, (3, 3), strides= (2,2), padding='valid')(x)
+x = tf.keras.layers.Conv2DTranspose(8, (3, 3),  strides= (2,2), padding='valid')(x)
 x = tf.keras.layers.LeakyReLU()(x)
 decoded = tf.keras.layers.Conv2D(1, (3, 3), padding='same')(x)
 # Strip the longitude wrap-around
-pruned=decoded #LonPruneLayer(padding=8)(decoded)
+pruned=LonPruneLayer(padding=8)(decoded)
 # Restore to original dimensions
 outsize=ResizeLayer(newsize=(91,180))(pruned)
 
