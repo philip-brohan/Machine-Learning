@@ -4,6 +4,10 @@
 # This version is all-convolutional - it uses strided convolutions
 #  instead of max-pooling, and transpose convolution instead of 
 #  upsampling.
+# This version uses scaled input fields that have a size (79x159) that
+#  match the strided convolution upscaling and downscaling.
+# It also works on tensors with a rotated pole - so the data boundary
+#  is the equator - this limits the problems with boundary conditions.
 
 import os
 import tensorflow as tf
@@ -16,82 +20,30 @@ n_epochs=50
 
 # Create TensorFlow Dataset object from the prepared training data
 (tr_data,n_steps) = ML_Utilities.dataset(purpose='training',
-                                         source='20CR2c',
+                                         source='rotated_pole/20CR2c',
                                          variable='prmsl')
 tr_data = tr_data.repeat(n_epochs)
 
 # Also produce a tuple (source,target) for model
 def to_model(ict):
-   ict=tf.reshape(ict,[91,180,1])
+   ict=tf.reshape(ict,[79,159,1])
    return(ict,ict)
 tr_data = tr_data.map(to_model)
 tr_data = tr_data.batch(1)
 
 # Similar dataset from the prepared test data
 (tr_test,test_steps) = ML_Utilities.dataset(purpose='test',
-                                            source='20CR2c',
+                                            source='rotated_pole/20CR2c',
                                             variable='prmsl')
 tr_test = tr_test.repeat(n_epochs)
 tr_test = tr_test.map(to_model)
 tr_test = tr_test.batch(1)
 
-# Need to resize data so it's dimensions are a multiple of 8 (3*2-fold pool)
-class ResizeLayer(tf.keras.layers.Layer):
-   def __init__(self, newsize=None, **kwargs):
-      super(ResizeLayer, self).__init__(**kwargs)
-      self.resize_newsize = newsize
-   def call(self, input):
-      return tf.image.resize_images(input, self.resize_newsize,
-                                    align_corners=True)
-   def get_config(self):
-      return {'newsize': self.resize_newsize}
-
-# Padding and pruning functions for periodic boundary conditions
-class LonPadLayer(tf.keras.layers.Layer):
-   def __init__(self, index=3, padding=8, **kwargs):
-      super(LonPadLayer, self).__init__(**kwargs)
-      self.lon_index = index
-      self.lon_padding = padding
-   def build(self, input_shape):
-      self.lon_tile_spec=numpy.repeat(1,len(input_shape))
-      self.lon_tile_spec[self.lon_index-1]=3
-      self.lon_expansion_slice=[slice(None, None, None)]*len(input_shape)
-      self.lon_expansion_slice[self.lon_index-1]=slice(
-                                input_shape[self.lon_index-1].value-self.lon_padding,
-                                input_shape[self.lon_index-1].value*2+self.lon_padding,
-                                None)
-      self.lon_expansion_slice=tuple(self.lon_expansion_slice)      
-   def call(self, input):
-      return tf.tile(input, self.lon_tile_spec)[self.lon_expansion_slice]
-   def get_config(self):
-      return {'index': self.lon_index}
-      return {'padding': self.lon_padding}
-class LonPruneLayer(tf.keras.layers.Layer):
-   def __init__(self, index=3, padding=8, **kwargs):
-      super(LonPruneLayer, self).__init__(**kwargs)
-      self.lon_index = index
-      self.lon_padding = padding
-   def build(self, input_shape):
-      self.lon_prune_slice=[slice(None, None, None)]*len(input_shape)
-      self.lon_prune_slice[self.lon_index-1]=slice(
-                                self.lon_padding,
-                                input_shape[self.lon_index-1].value-self.lon_padding,
-                                None)
-      self.lon_prune_slice=tuple(self.lon_prune_slice)      
-   def call(self, input):
-     return input[self.lon_prune_slice]
-   def get_config(self):
-      return {'index': self.lon_index}
-      return {'padding': self.lon_padding}
 
 # Input placeholder
-original = tf.keras.layers.Input(shape=(91,180,1,))
-# Resize to have dimesions divisible by 8
-resized = ResizeLayer(newsize=(80,160))(original)
-# Wrap-around in longitude for periodic boundary conditions
-padded = LonPadLayer(padding=8)(resized)
+original = tf.keras.layers.Input(shape=(79,159,1,))
 # Encoding layers
-x = tf.keras.layers.Conv2D(16, (3, 3), padding='same')(padded)
+x = tf.keras.layers.Conv2D(16, (3, 3), padding='same')(original)
 x = tf.keras.layers.LeakyReLU()(x)
 x = tf.keras.layers.Conv2D(8, (3, 3), strides= (2,2), padding='valid')(x)
 x = tf.keras.layers.LeakyReLU()(x)
@@ -113,13 +65,9 @@ x = tf.keras.layers.LeakyReLU()(x)
 x = tf.keras.layers.Conv2DTranspose(8, (3, 3),  strides= (2,2), padding='valid')(x)
 x = tf.keras.layers.LeakyReLU()(x)
 decoded = tf.keras.layers.Conv2D(1, (3, 3), padding='same')(x)
-# Strip the longitude wrap-around
-pruned=LonPruneLayer(padding=8)(decoded)
-# Restore to original dimensions
-outsize=ResizeLayer(newsize=(91,180))(pruned)
 
 # Model relating original to output
-autoencoder = tf.keras.models.Model(original,outsize)
+autoencoder = tf.keras.models.Model(original,decoded)
 # Choose a loss metric to minimise (RMS)
 #  and an optimiser to use (adadelta)
 autoencoder.compile(optimizer='adadelta', loss='mean_squared_error')

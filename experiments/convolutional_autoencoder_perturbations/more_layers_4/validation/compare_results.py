@@ -22,71 +22,40 @@ from matplotlib.figure import Figure
 import cartopy
 import cartopy.crs as ccrs
 
+# Function to resize and rotate pole
+def rr_cube(cbe):
+    # Use the Cassini projection (boundary is the equator)
+    cs=iris.coord_systems.RotatedGeogCS(0.0,60.0,270.0)
+    # Latitudes cover -90 to 90 with 79 values
+    lat_values=numpy.arange(-90,91,180/78)
+    latitude = iris.coords.DimCoord(lat_values,
+                                    standard_name='latitude',
+                                    units='degrees_north',
+                                    coord_system=cs)
+    # Longitudes cover -180 to 180 with 159 values
+    lon_values=numpy.arange(-180,181,360/158)
+    longitude = iris.coords.DimCoord(lon_values,
+                                     standard_name='longitude',
+                                     units='degrees_east',
+                                     coord_system=cs)
+    dummy_data = numpy.zeros((len(lat_values), len(lon_values)))
+    dummy_cube = iris.cube.Cube(dummy_data,
+                               dim_coords_and_dims=[(latitude, 0),
+                                                    (longitude, 1)])
+    n_cube=cbe.regrid(dummy_cube,iris.analysis.Linear())
+    return(n_cube)
+ 
 # Get the 20CR data
 ic=twcr.load('prmsl',datetime.datetime(2009,3,12,18),
                            version='2c')
-ic=ic.extract(iris.Constraint(member=1))
-
-# Need to resize data so it's dimensions are a multiple of 8 (3*2-fold pool)
-class ResizeLayer(tf.keras.layers.Layer):
-   def __init__(self, newsize=None, **kwargs):
-      super(ResizeLayer, self).__init__(**kwargs)
-      self.resize_newsize = newsize
-   def build(self, input_shape):
-      self.resize_newsize *= 1
-   def call(self, input):
-      return tf.image.resize_images(input, self.resize_newsize,
-                                    align_corners=True)
-   def get_config(self):
-      return {'newsize': self.resize_newsize}
-
-# Padding and pruning functions for periodic boundary conditions
-class LonPadLayer(tf.keras.layers.Layer):
-   def __init__(self, index=3, padding=8, **kwargs):
-      super(LonPadLayer, self).__init__(**kwargs)
-      self.lon_index = index
-      self.lon_padding = padding
-   def build(self, input_shape):
-      self.lon_tile_spec=numpy.repeat(1,len(input_shape))
-      self.lon_tile_spec[self.lon_index-1]=3
-      self.lon_expansion_slice=[slice(None, None, None)]*len(input_shape)
-      self.lon_expansion_slice[self.lon_index-1]=slice(
-                                input_shape[self.lon_index-1].value-self.lon_padding,
-                                input_shape[self.lon_index-1].value*2+self.lon_padding,
-                                None)
-      self.lon_expansion_slice=tuple(self.lon_expansion_slice)      
-   def call(self, input):
-     return tf.tile(input, self.lon_tile_spec)[self.lon_expansion_slice]
-   def get_config(self):
-      return {'index': self.lon_index}
-      return {'adding': self.lon_padding}
-class LonPruneLayer(tf.keras.layers.Layer):
-   def __init__(self, index=3, padding=8, **kwargs):
-      super(LonPruneLayer, self).__init__(**kwargs)
-      self.lon_index = index
-      self.lon_padding = padding
-   def build(self, input_shape):
-      self.lon_prune_slice=[slice(None, None, None)]*len(input_shape)
-      self.lon_prune_slice[self.lon_index-1]=slice(
-                                self.lon_padding,
-                                input_shape[self.lon_index-1].value-self.lon_padding,
-                                None)
-      self.lon_prune_slice=tuple(self.lon_prune_slice)      
-   def call(self, input):
-     return input[self.lon_prune_slice]
-   def get_config(self):
-      return {'index': self.lon_index}
-      return {'padding': self.lon_padding}
+ic=rr_cube(ic.extract(iris.Constraint(member=1)))
 
 # Get the autoencoder
 model_save_file=("%s/Machine-Learning-experiments/"+
                   "convolutional_autoencoder_perturbations/"+
                   "more_layers_4/saved_models/Epoch_%04d") % (
-                     os.getenv('SCRATCH'),50)
-autoencoder=tf.keras.models.load_model(model_save_file,
-                                       custom_objects={'LonPadLayer': LonPadLayer,
-                                                       'LonPruneLayer': LonPruneLayer,
-                                                       'ResizeLayer': ResizeLayer})
+                      os.getenv('SCRATCH'),50)
+autoencoder=tf.keras.models.load_model(model_save_file)
 
 # Normalisation - Pa to mean=0, sd=1 - and back
 def normalise(x):
@@ -110,7 +79,9 @@ fig=Figure(figsize=(9.6,10.8),  # 1/2 HD
 canvas=FigureCanvas(fig)
 
 # Top - map showing original and reconstructed fields
-projection=ccrs.RotatedPole(pole_longitude=180.0, pole_latitude=90.0)
+projection=ccrs.RotatedPole(pole_longitude=60.0,
+                            pole_latitude=0.0,
+                            central_rotated_longitude=270.0)
 ax_map=fig.add_axes([0.01,0.51,0.98,0.48],projection=projection)
 ax_map.set_axis_off()
 extent=[-180,180,-90,90]
@@ -121,9 +92,9 @@ matplotlib.rc('image',aspect='auto')
 pm=ic.copy()
 pm.data=normalise(pm.data)
 ict=tf.convert_to_tensor(pm.data, numpy.float32)
-ict=tf.reshape(ict,[1,91,180,1])
+ict=tf.reshape(ict,[1,79,159,1])
 result=autoencoder.predict_on_batch(ict)
-result=tf.reshape(result,[91,180])
+result=tf.reshape(result,[79,159])
 pm.data=unnormalise(result)
 
 # Background, grid and land
@@ -192,7 +163,7 @@ ax.grid(color='black',
 history_save_file=("%s/Machine-Learning-experiments/"+
                    "convolutional_autoencoder_perturbations/"+
                    "more_layers_4/saved_models/history_to_%04d.pkl") % (
-                      os.getenv('SCRATCH'),50)
+                       os.getenv('SCRATCH'),50)
 history=pickle.load( open( history_save_file, "rb" ) )
 ax=fig.add_axes([0.62,0.05,0.35,0.4])
 # Axes ranges from data
