@@ -23,7 +23,7 @@ import numpy
 latent_dim=100
 
 # How many epochs to train for
-n_epochs=50
+n_epochs=250
 
 # Create TensorFlow Dataset object from the prepared training data
 (tr_data,n_steps) = ML_Utilities.dataset(purpose='training',

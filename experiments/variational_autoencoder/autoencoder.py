@@ -16,7 +16,7 @@ import numpy
 latent_dim=100
 
 # How many epochs to train for
-n_epochs=50
+n_epochs=5
 
 # Create TensorFlow Dataset object from the prepared training data
 (tr_data,n_steps) = ML_Utilities.dataset(purpose='training',
@@ -29,7 +29,7 @@ def to_model(ict):
    ict=tf.reshape(ict,[79,159,1])
    return(ict,ict)
 tr_data = tr_data.map(to_model)
-tr_data = tr_data.batch(1)
+tr_data = tr_data.batch(10)
 
 # Similar dataset from the prepared test data
 (tr_test,test_steps) = ML_Utilities.dataset(purpose='test',
@@ -37,7 +37,7 @@ tr_data = tr_data.batch(1)
                                             variable='prmsl')
 tr_test = tr_test.repeat(n_epochs)
 tr_test = tr_test.map(to_model)
-tr_test = tr_test.batch(1)
+tr_test = tr_test.batch(10)
 
 # reparameterization trick
 # instead of sampling from Q(z|X), sample eps = N(0,I)
@@ -89,14 +89,25 @@ decoded = tf.keras.layers.Conv2D(1, (3, 3), padding='same')(x) # Will be 75x159 
 generator = tf.keras.models.Model(encoded, decoded, name='generator')
 
 # Combine the encoder and the generator into an autoencoder
-autoInput = tf.keras.layers.Input(shape=(79,159,1,), name='autoencoder_input')
-encoderOut = encoder(autoInput)
-decoderOut = generator(encoderOut[2])
-autoencoder = tf.keras.models.Model(inputs=autoInput, outputs=decoderOut, name='autoencoder')
+#autoInput = tf.keras.layers.Input(shape=(79,159,1,), name='autoencoder_input')
+output = generator(encoder(original)[2])
+autoencoder = tf.keras.models.Model(inputs=original, outputs=output, name='autoencoder')
 
-# Choose a loss metric to minimise (RMS)
-#  and an optimiser to use (adadelta)
-autoencoder.compile(optimizer='adadelta', loss='mean_squared_error')
+# Specify a loss function - combination of the reconstruction loss
+#  and the KL divergence of the latent space (from a multivariate gaussian).
+
+reconstruction_loss = tf.keras.losses.mse(original, output)
+reconstruction_loss *= latent_dim
+
+kl_loss = 1 + z_log_var - tf.keras.backend.square(z_mean) - tf.keras.backend.exp(z_log_var)
+kl_loss = tf.keras.backend.sum(kl_loss, axis=-1)
+kl_loss *= -0.5
+
+#vae_loss = tf.keras.backend.mean(reconstruction_loss + kl_loss)
+    
+autoencoder.add_loss(reconstruction_loss)
+
+autoencoder.compile(optimizer='adam')#, loss='mean_squared_error')
 
 # Train the autoencoder
 history=autoencoder.fit(x=tr_data,
