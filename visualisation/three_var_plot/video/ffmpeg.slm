@@ -1,0 +1,15 @@
+#!/bin/ksh -l
+#SBATCH --qos=normal
+#SBATCH --mem=200000
+#SBATCH --ntasks=16
+#SBATCH --ntasks-per-core=1
+#SBATCH --time=10
+
+cd $SCRATCH/images/
+
+rm Three_var.mp4
+# Get rid of empty images - they make ffmpeg stop processing
+#  These usually come from disc problems in the creation step.
+find three_var_plot/*.png -type f -empty -delete
+
+ffmpeg -r 24 -pattern_type glob -i three_var_plot/\*.png -c:v libx264 -threads 16 -preset slow -tune animation -profile:v high -level 4.2 -pix_fmt yuv420p -crf 25 -c:a copy Three_var.mp4
