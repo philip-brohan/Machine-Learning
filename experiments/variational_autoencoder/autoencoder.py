@@ -16,7 +16,7 @@ import numpy
 latent_dim=100
 
 # How many epochs to train for
-n_epochs=5
+n_epochs=500
 
 # Create TensorFlow Dataset object from the prepared training data
 (tr_data,n_steps) = ML_Utilities.dataset(purpose='training',
@@ -29,7 +29,7 @@ def to_model(ict):
    ict=tf.reshape(ict,[79,159,1])
    return(ict,ict)
 tr_data = tr_data.map(to_model)
-tr_data = tr_data.batch(10)
+tr_data = tr_data.batch(1)
 
 # Similar dataset from the prepared test data
 (tr_test,test_steps) = ML_Utilities.dataset(purpose='test',
@@ -37,7 +37,7 @@ tr_data = tr_data.batch(10)
                                             variable='prmsl')
 tr_test = tr_test.repeat(n_epochs)
 tr_test = tr_test.map(to_model)
-tr_test = tr_test.batch(10)
+tr_test = tr_test.batch(1)
 
 # reparameterization trick
 # instead of sampling from Q(z|X), sample eps = N(0,I)
@@ -97,17 +97,17 @@ autoencoder = tf.keras.models.Model(inputs=original, outputs=output, name='autoe
 #  and the KL divergence of the latent space (from a multivariate gaussian).
 
 reconstruction_loss = tf.keras.losses.mse(original, output)
-reconstruction_loss *= latent_dim
+reconstruction_loss *= latent_dim * 100
 
 kl_loss = 1 + z_log_var - tf.keras.backend.square(z_mean) - tf.keras.backend.exp(z_log_var)
 kl_loss = tf.keras.backend.sum(kl_loss, axis=-1)
 kl_loss *= -0.5
 
-#vae_loss = tf.keras.backend.mean(reconstruction_loss + kl_loss)
+vae_loss = tf.keras.backend.mean(reconstruction_loss + kl_loss)
     
-autoencoder.add_loss(reconstruction_loss)
+autoencoder.add_loss(vae_loss)
 
-autoencoder.compile(optimizer='adam')#, loss='mean_squared_error')
+autoencoder.compile(optimizer='adadelta')
 
 # Train the autoencoder
 history=autoencoder.fit(x=tr_data,

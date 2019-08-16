@@ -54,8 +54,8 @@ ic=rr_cube(ic.extract(iris.Constraint(member=1)))
 model_save_file=("%s/Machine-Learning-experiments/"+
                   "variational_autoencoder/"+
                   "/saved_models/Epoch_%04d/autoencoder") % (
-                      os.getenv('SCRATCH'),50)
-autoencoder=tf.keras.models.load_model(model_save_file)
+                      os.getenv('SCRATCH'),500)
+autoencoder=tf.keras.models.load_model(model_save_file,compile=False)
 
 # Normalisation - Pa to mean=0, sd=1 - and back
 def normalise(x):
@@ -163,7 +163,7 @@ ax.grid(color='black',
 history_save_file=("%s/Machine-Learning-experiments/"+
                    "variational_autoencoder/"+
                    "saved_models/history_to_%04d.pkl") % (
-                       os.getenv('SCRATCH'),50)
+                       os.getenv('SCRATCH'),500)
 history=pickle.load( open( history_save_file, "rb" ) )
 ax=fig.add_axes([0.62,0.05,0.35,0.4])
 # Axes ranges from data
