@@ -18,7 +18,7 @@ The change is simple to make:
 
 .. literalinclude:: ../../../experiments/convolutional_autoencoder_perturbations/all_convolutional/autoencoder.py
 
-It does indeed work markedly better than the the :doc:`original convolutional version <../../convolutional_autoencoder/autoencoder>`.
+It's not much better than the the :doc:`original convolutional version <../../convolutional_autoencoder/autoencoder>`, but it does train faster.
 
 .. figure:: ../../../experiments/convolutional_autoencoder_perturbations/all_convolutional/validation/comparison_results.png
    :width: 95%

@@ -1,0 +1,130 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Perturbing the convolutional autoencoder &#8212; Machine Learning Experiments</title>
+    <link rel="stylesheet" href="../_static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/language_data.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="An all-convolutional autoencoder" href="all_convolutional/autoencoder.html" />
+    <link rel="prev" title="A convolutional autoencoder" href="../convolutional_autoencoder/autoencoder.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="all_convolutional/autoencoder.html" title="An all-convolutional autoencoder"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="../convolutional_autoencoder/autoencoder.html" title="A convolutional autoencoder"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">ML Experiments</a> &#187;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../index.html">
+              <img class="logo" src="../_static/Weather-Network.png" alt="Logo"/>
+            </a></p>
+<h3><a href="../index.html">Table of Contents</a></h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../prepare_data/prepare_data.html">Getting climate data into TensorFlow</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../simple_autoencoder/autoencoder.html">Getting started - a simple autoencoder</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../autoencoder_perturbations/perturbations.html">Perturbing the simple autoencoder</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../deep_autoencoder/autoencoder.html">A deep autoencoder</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../convolutional_autoencoder/autoencoder.html">A convolutional autoencoder</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Perturbing the convolutional autoencoder</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../oldstyle_assimilation/assimilation.html">Old-style assimilation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../oldstyle_assimilation/prate/assimilation.html">Old-style assimilation of precipitation</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../package/ML_Utilities.html">ML Utilities package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../credits.html">Small Print</a></li>
+</ul>
+<h3><a href="https://github.com/philip-brohan/Machine-Learning">Get the source code</a></h3>
+
+<a href="https://github.com/philip-brohan/Machine-Learning"
+           rel="nofollow">Github source repository</a>
+
+<h3>Found a bug, or have a suggestion?</h3>
+
+Please <a href="https://github.com/philip-brohan/Machine-Learning/issues/new">raise an issue</a>.
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="perturbing-the-convolutional-autoencoder">
+<h1>Perturbing the convolutional autoencoder<a class="headerlink" href="#perturbing-the-convolutional-autoencoder" title="Permalink to this headline">¶</a></h1>
+<p>So we have <a class="reference internal" href="../convolutional_autoencoder/autoencoder.html"><span class="doc">a convolutional autoencoder that works pretty well</span></a>. Can we make it work even better - either improve the reconstruction accuracy or shrink the encoded state?</p>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="all_convolutional/autoencoder.html">All-convolutional version</a></li>
+</ul>
+</div>
+<p>The all-convolutional architecture is nice, but the periodic boundary conditions are a nuisance to deal with. We can simplify the autoencoder by pre-scaling the data and rotating the interesting features away from the edges of the field.</p>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="rotated+scaled/autoencoder.html">With rotated and scaled training data</a></li>
+</ul>
+</div>
+<p>To make the autoencoder more useful we can try two ways to shrink the encoded state:</p>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="more_layers_4/autoencoder.html">With an extra strided convolution layer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="latent_space/autoencoder.html">With an explicit latent space</a></li>
+</ul>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="all_convolutional/autoencoder.html" title="An all-convolutional autoencoder"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="../convolutional_autoencoder/autoencoder.html" title="A convolutional autoencoder"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">ML Experiments</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    </div>
+  </body>
+</html>
