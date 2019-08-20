@@ -24,7 +24,7 @@ model_save_dir=(("%s/Machine-Learning-experiments/"+
                     os.getenv('SCRATCH'),start_epoch))
 
 # How many epochs to train for
-n_epochs=5
+n_epochs=500
 
 # Target data setup
 buffer_size=100

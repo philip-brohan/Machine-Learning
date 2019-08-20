@@ -113,7 +113,7 @@ plot_cube=mg.utils.dummy_cube(ax,0.25)
 t2m = dummy_cube.regrid(plot_cube,iris.analysis.Linear())
 # Re-map to highlight small differences
 s=t2m.data.shape
-t2m.data=qcut(t2m.data.flatten(),20,labels=False).reshape(s)
+t2m.data=qcut(t2m.data.flatten(),20,labels=False,duplicates='drop').reshape(s)
 # Plot as a colour map
 lats = t2m.coord('latitude').points
 lons = t2m.coord('longitude').points
@@ -133,8 +133,9 @@ mg.pressure.plot(ax,dummy_cube,scale=0.01,resolution=0.25,
 
 # Also precip
 prate=tf.reshape(simulation.numpy()[:,:,:,2],[79,159]).numpy()
+prate=prate**2
 dummy_cube.data=prate
-#mg.precipitation.plot(ax,dummy_cube,resolution=0.25,vmin=-0.01,vmax=0.04)
+#mg.precipitation.plot(ax,dummy_cube,resolution=0.25)#,vmin=-0.01,vmax=0.04)
 
 # Add a label showing the date
 label="Reconstruction at Epoch %d" % args.epoch
