@@ -15,7 +15,7 @@ import numpy
 from glob import glob
 
 # How many epochs to train for
-n_epochs=100
+n_epochs=1000
 
 # Dimensionality of the latent space
 latent_dim=100
@@ -50,7 +50,7 @@ def load_tensor(file_name):
     sict  = tf.read_file(file_name)
     prate = tf.parse_tensor(sict,numpy.float32)
     prate = tf.math.maximum(prate,0)
-    prate *= 1000
+    prate *= 10000
     prate = tf.math.sqrt(prate)
     prate = tf.reshape(prate,[79,159,1])
     ict = tf.concat([prmsl,t2m,prate],2) # Now [79,159,3]
@@ -89,12 +89,16 @@ original = tf.keras.layers.Input(shape=(79,159,3,), name='encoder_input')
 # Encoding layers
 x = tf.keras.layers.Conv2D(27, (3, 3), padding='same')(original)
 x = tf.keras.layers.LeakyReLU()(x)
+x = tf.keras.layers.Dropout(0.3)(x)
 x = tf.keras.layers.Conv2D(9, (3, 3), strides= (2,2), padding='valid')(x)
 x = tf.keras.layers.LeakyReLU()(x)
+x = tf.keras.layers.Dropout(0.3)(x)
 x = tf.keras.layers.Conv2D(3, (3, 3), strides= (2,2), padding='valid')(x)
 x = tf.keras.layers.LeakyReLU()(x)
+x = tf.keras.layers.Dropout(0.3)(x)
 x = tf.keras.layers.Conv2D(1, (3, 3), strides= (2,2), padding='valid')(x)
 x = tf.keras.layers.LeakyReLU()(x)
+x = tf.keras.layers.Dropout(0.3)(x)
 
 # N-dimensional latent space representation
 x = tf.keras.layers.Reshape(target_shape=(9*19*1,))(x)
@@ -109,13 +113,13 @@ encoder = tf.keras.models.Model(original, [z_mean, z_log_var, z], name='encoder'
 
 # Decoding layers
 encoded=tf.keras.layers.Input(shape=(latent_dim,), name='decoder_input') # Will be 'z' above
-x = tf.keras.layers.Dense(9*19*1)(encoded)
-x = tf.keras.layers.Reshape(target_shape=(9,19,1,))(x)
-x = tf.keras.layers.Conv2DTranspose(3, (3, 3),  strides= (2,2), padding='valid')(x)
-x = tf.keras.layers.LeakyReLU()(x)
-x = tf.keras.layers.Conv2DTranspose(9, (3, 3),  strides= (2,2), padding='valid')(x)
+x = tf.keras.layers.Dense(9*19*81)(encoded)
+x = tf.keras.layers.Reshape(target_shape=(9,19,81,))(x)
+x = tf.keras.layers.Conv2DTranspose(81, (3, 3),  strides= (2,2), padding='valid')(x)
 x = tf.keras.layers.LeakyReLU()(x)
 x = tf.keras.layers.Conv2DTranspose(27, (3, 3),  strides= (2,2), padding='valid')(x)
+x = tf.keras.layers.LeakyReLU()(x)
+x = tf.keras.layers.Conv2DTranspose(9, (3, 3),  strides= (2,2), padding='valid')(x)
 x = tf.keras.layers.LeakyReLU()(x)
 decoded = tf.keras.layers.Conv2D(3, (3, 3), padding='same')(x) # Will be 75x159x3 - same as input
 

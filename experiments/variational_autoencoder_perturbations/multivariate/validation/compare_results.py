@@ -109,7 +109,7 @@ t2m_t = tf.convert_to_tensor(t2m_t.data, numpy.float32)
 t2m_t = tf.reshape(t2m_t,[79,159,1])
 prate_t = prate.copy()
 prate_t.data = tf.math.maximum(prate_t.data,0)
-prate_t.data *= 1000
+prate_t.data *= 10000
 prate_t.data = tf.math.sqrt(prate_t.data)
 prate_t = tf.convert_to_tensor(prate_t.data, numpy.float32)
 prate_t = tf.reshape(prate_t,[79,159,1])
@@ -128,7 +128,7 @@ t2m_r.data += 280
 prate_r = prate.copy()
 prate_r.data = tf.reshape(result.numpy()[:,:,2],[79,159]).numpy()
 prate_r.data = prate_r.data**2
-prate_r.data /= 1000
+prate_r.data /= 10000
 
 fig=Figure(figsize=(9.6*1.2,10.8),
            dpi=100,
