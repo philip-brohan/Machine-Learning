@@ -1,9 +1,6 @@
 #!/usr/bin/env python
 
-# Global surface weather plot
-
-# Set up the figure and add the continents as background
-# Overlay multivariate weather: pressure, temperature and precip.
+# Surface temperature with various colourmaps
 
 import os
 import IRData.twcr as twcr
@@ -42,6 +39,11 @@ if not os.path.isdir(args.opdir):
 dte=datetime.datetime(args.year,args.month,args.day,
                       int(args.hour),int(args.hour%1*60))
 
+# Plot the temperature
+t2m=twcr.load('air.2m',dte,version='2c')
+t2m=t2m.extract(iris.Constraint(member=1))
+s=t2m.data.shape
+t2m.data=qcut(t2m.data.flatten(),20,labels=False).reshape(s)
 
 # Define the figure (page size, background color, resolution, ...
 aspect=16/9.0
@@ -58,36 +60,27 @@ canvas=FigureCanvas(fig)
 
 # All mg plots use Rotated Pole: choose a rotation that shows the global
 #  circulation nicely.
-projection=ccrs.RotatedPole(pole_longitude=60.0,
-                                pole_latitude=0.0,
-                                central_rotated_longitude=270.0)
-#projection=ccrs.RotatedPole(pole_longitude=180.0,
-#                                pole_latitude=90.0,
-#                                central_rotated_longitude=0.0)
+#projection=ccrs.RotatedPole(pole_longitude=60.0,
+#                                pole_latitude=0.0,
+#                                central_rotated_longitude=270.0)
+projection=ccrs.RotatedPole(pole_longitude=180.0,
+                                pole_latitude=90.0,
+                                central_rotated_longitude=0.0)
 #projection=ccrs.RotatedPole(pole_longitude=160.0,
 #                                pole_latitude=45.0,
 #                                central_rotated_longitude=-40.0)
 
-# Define an axes to contain the plot. In this case our axes covers
-#  the whole figure
-ax = fig.add_axes([0,0,1,1],projection=projection)
-ax.set_axis_off() # Don't want surrounding x and y axis
-# Set the axes background colour
-ax.background_patch.set_facecolor((0.88,0.88,0.88,1))
+# Four plots - each with a different colourmap
 
-# Lat and lon range (in rotated-pole coordinates) for plot
+ax_turbo = fig.add_axes([0.025,0.525,0.45,0.45],projection=projection)
+ax_turbo.set_axis_off() # Don't want surrounding x and y axis
+ax_turbo.background_patch.set_facecolor((0.88,0.88,0.88,1))
 extent=[-180.0,180.0,-90.0,90.0]
-ax.set_extent(extent, crs=projection)
-# Lat:Lon aspect does not match the plot aspect, ignore this and
-#  fill the figure with the plot.
+ax_turbo.set_extent(extent, crs=projection)
 matplotlib.rc('image',aspect='auto')
 
 # Add the land
-land_img=ax.background_img(name='GreyT', resolution='low')
-# Reduce the land contrast
-#poly = Polygon(([-180,-90],[180,-90],[180,90],[-180,90]),
-#                 facecolor=(0.88,0.88,0.88,0.05))
-#ax.add_patch(poly)
+land_img=ax_turbo.background_img(name='GreyT', resolution='low')
 
 turbo_colormap_data = [[0.18995,0.07176,0.23217],[0.19483,0.08339,0.26149],[0.19956,0.09498,0.29024],
                        [0.20415,0.10652,0.31844],[0.20860,0.11802,0.34607],[0.21291,0.12947,0.37314],
@@ -176,39 +169,109 @@ turbo_colormap_data = [[0.18995,0.07176,0.23217],[0.19483,0.08339,0.26149],[0.19
                        [0.51989,0.02756,0.00780],[0.50664,0.02354,0.00863],[0.49321,0.01963,0.00955],
                        [0.47960,0.01583,0.01055]]
 
-# Plot the temperature
-t2m=twcr.load('air.2m',dte,version='2c')
-t2m=t2m.extract(iris.Constraint(member=1))
-# Regrid to plot coordinates
-plot_cube=mg.utils.dummy_cube(ax,0.25)
-t2m = t2m.regrid(plot_cube,iris.analysis.Linear())
-# Re-map to highlight small differences
-s=t2m.data.shape
-t2m.data=qcut(t2m.data.flatten(),20,labels=False).reshape(s)
 # Plot as a colour map
+plot_cube=mg.utils.dummy_cube(ax_turbo,0.25)
+t2m = t2m.regrid(plot_cube,iris.analysis.Linear())
 lats = t2m.coord('latitude').points
 lons = t2m.coord('longitude').points
-t2m_img=ax.pcolorfast(lons, lats, t2m.data,
+t2m_img=ax_turbo.pcolorfast(lons, lats, t2m.data, 
                       cmap=ListedColormap(turbo_colormap_data),
                       vmin=0,
                       vmax=20,
                       alpha=0.5)
    
-# Also pressure
-prmsl=twcr.load('prmsl',dte,version='2c')
-prmsl=prmsl.extract(iris.Constraint(member=1))
-mg.pressure.plot(ax,prmsl,scale=0.01,resolution=0.25,
-                 linewidths=1)
-
-# Also precip
-prate=twcr.load('prate',dte,version='2c')
-prate=prate.extract(iris.Constraint(member=1))
-mg.precipitation.plot(ax,prate,resolution=0.25,vmin=-0.01,vmax=0.04)
 
 # Add a label showing the date
-label="Surface weather test plot"
-mg.utils.plot_label(ax,label,
-                    facecolor=fig.get_facecolor())
+label="Turbo"
+mg.utils.plot_label(ax_turbo,label,
+                    x_fraction=0.97,
+                    y_fraction=0.92,
+                    facecolor=fig.get_facecolor()
+)
+
+# Top right - jet
+
+ax_jet = fig.add_axes([0.525,0.525,0.45,0.45],projection=projection)
+ax_jet.set_axis_off() # Don't want surrounding x and y axis
+ax_jet.background_patch.set_facecolor((0.88,0.88,0.88,1))
+extent=[-180.0,180.0,-90.0,90.0]
+ax_jet.set_extent(extent, crs=projection)
+matplotlib.rc('image',aspect='auto')
+
+# Add the land
+land_img=ax_jet.background_img(name='GreyT', resolution='low')
+
+# Plot as a colour map
+t2m_img=ax_jet.pcolorfast(lons, lats, t2m.data, 
+                      cmap='jet', # ListedColormap(turbo_colormap_data),
+                      vmin=0,
+                      vmax=20,
+                      alpha=0.5)
+   
+
+# Add a label showing the colourmap
+label="Jet"
+mg.utils.plot_label(ax_jet,label,
+                    x_fraction=0.97,
+                    y_fraction=0.92,
+                    facecolor=fig.get_facecolor()
+)
+
+# Bottom right - coolwarm
+
+ax_cw = fig.add_axes([0.525,0.025,0.45,0.45],projection=projection)
+ax_cw.set_axis_off() # Don't want surrounding x and y axis
+ax_cw.background_patch.set_facecolor((0.88,0.88,0.88,1))
+extent=[-180.0,180.0,-90.0,90.0]
+ax_cw.set_extent(extent, crs=projection)
+matplotlib.rc('image',aspect='auto')
+
+# Add the land
+land_img=ax_cw.background_img(name='GreyT', resolution='low')
+
+# Plot as a colour map
+t2m_img=ax_cw.pcolorfast(lons, lats, t2m.data, 
+                      cmap='coolwarm',
+                      vmin=0,
+                      vmax=20,
+                      alpha=0.5)
+   
+
+# Add a label showing the colourmap
+label="Coolwarm"
+mg.utils.plot_label(ax_cw,label,
+                    x_fraction=0.97,
+                    y_fraction=0.92,
+                    facecolor=fig.get_facecolor()
+)
+
+# Bottom left - viridis
+
+ax_viridis = fig.add_axes([0.025,0.025,0.45,0.45],projection=projection)
+ax_viridis.set_axis_off() # Don't want surrounding x and y axis
+ax_viridis.background_patch.set_facecolor((0.88,0.88,0.88,1))
+extent=[-180.0,180.0,-90.0,90.0]
+ax_viridis.set_extent(extent, crs=projection)
+matplotlib.rc('image',aspect='auto')
+
+# Add the land
+land_img=ax_viridis.background_img(name='GreyT', resolution='low')
+
+# Plot as a colour map
+t2m_img=ax_viridis.pcolorfast(lons, lats, t2m.data, 
+                      cmap='RdYlBu_r',
+                      vmin=0,
+                      vmax=20,
+                      alpha=0.5)
+   
+
+# Add a label showing the colourmap
+label="RdYlBu"
+mg.utils.plot_label(ax_viridis,label,
+                    x_fraction=0.97,
+                    y_fraction=0.92,
+                    facecolor=fig.get_facecolor()
+)
 
 # Render the figure as a png
-fig.savefig('%s/tst2.png' % args.opdir)
+fig.savefig('%s/colourmaps.png' % args.opdir)

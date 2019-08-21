@@ -87,21 +87,21 @@ def sampling(args):
 # Input placeholder
 original = tf.keras.layers.Input(shape=(79,159,3,), name='encoder_input')
 # Encoding layers
-x = tf.keras.layers.Conv2D(27, (3, 3), padding='same')(original)
-x = tf.keras.layers.LeakyReLU()(x)
-x = tf.keras.layers.Dropout(0.3)(x)
+x = tf.keras.layers.Conv2D(3, (3, 3), padding='same')(original)
+x = tf.keras.layers.ELU()(x)
+#x = tf.keras.layers.Dropout(0.3)(x)
 x = tf.keras.layers.Conv2D(9, (3, 3), strides= (2,2), padding='valid')(x)
-x = tf.keras.layers.LeakyReLU()(x)
-x = tf.keras.layers.Dropout(0.3)(x)
-x = tf.keras.layers.Conv2D(3, (3, 3), strides= (2,2), padding='valid')(x)
-x = tf.keras.layers.LeakyReLU()(x)
-x = tf.keras.layers.Dropout(0.3)(x)
-x = tf.keras.layers.Conv2D(1, (3, 3), strides= (2,2), padding='valid')(x)
-x = tf.keras.layers.LeakyReLU()(x)
-x = tf.keras.layers.Dropout(0.3)(x)
+x = tf.keras.layers.ELU()(x)
+#x = tf.keras.layers.Dropout(0.3)(x)
+x = tf.keras.layers.Conv2D(27, (3, 3), strides= (2,2), padding='valid')(x)
+x = tf.keras.layers.ELU()(x)
+#x = tf.keras.layers.Dropout(0.3)(x)
+x = tf.keras.layers.Conv2D(81, (3, 3), strides= (2,2), padding='valid')(x)
+x = tf.keras.layers.ELU()(x)
+#x = tf.keras.layers.Dropout(0.3)(x)
 
 # N-dimensional latent space representation
-x = tf.keras.layers.Reshape(target_shape=(9*19*1,))(x)
+x = tf.keras.layers.Reshape(target_shape=(9*19*81,))(x)
 z_mean = tf.keras.layers.Dense(latent_dim, name='z_mean')(x)
 z_log_var = tf.keras.layers.Dense(latent_dim, name='z_log_var')(x)
 
@@ -116,11 +116,11 @@ encoded=tf.keras.layers.Input(shape=(latent_dim,), name='decoder_input') # Will 
 x = tf.keras.layers.Dense(9*19*81)(encoded)
 x = tf.keras.layers.Reshape(target_shape=(9,19,81,))(x)
 x = tf.keras.layers.Conv2DTranspose(81, (3, 3),  strides= (2,2), padding='valid')(x)
-x = tf.keras.layers.LeakyReLU()(x)
+x = tf.keras.layers.ELU()(x)
 x = tf.keras.layers.Conv2DTranspose(27, (3, 3),  strides= (2,2), padding='valid')(x)
-x = tf.keras.layers.LeakyReLU()(x)
+x = tf.keras.layers.ELU()(x)
 x = tf.keras.layers.Conv2DTranspose(9, (3, 3),  strides= (2,2), padding='valid')(x)
-x = tf.keras.layers.LeakyReLU()(x)
+x = tf.keras.layers.ELU()(x)
 decoded = tf.keras.layers.Conv2D(3, (3, 3), padding='same')(x) # Will be 75x159x3 - same as input
 
 # Define a generator (decoder) model
