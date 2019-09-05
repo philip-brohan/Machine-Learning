@@ -134,8 +134,9 @@ mg.pressure.plot(ax,dummy_cube,scale=0.01,resolution=0.25,
 # Also precip
 prate=tf.reshape(simulation.numpy()[:,:,:,2],[79,159]).numpy()
 prate=prate**2
+prate /= 10000
 dummy_cube.data=prate
-#mg.precipitation.plot(ax,dummy_cube,resolution=0.25)#,vmin=-0.01,vmax=0.04)
+mg.precipitation.plot(ax,dummy_cube,resolution=0.25)#,vmin=-0.01,vmax=0.04)
 
 # Add a label showing the date
 label="Reconstruction at Epoch %d" % args.epoch

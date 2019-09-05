@@ -15,7 +15,7 @@ import numpy
 import time
 
 # How many epochs to train for
-n_epochs=500
+n_epochs=1000
 
 # Target data setup
 buffer_size=100
@@ -52,6 +52,7 @@ def load_tensor(file_name):
     sict  = tf.read_file(file_name)
     prate = tf.parse_tensor(sict,numpy.float32)
     prate = tf.math.maximum(prate,0)
+    prate *= 10000
     prate = tf.math.sqrt(prate) # normalise-ish
     prate = tf.reshape(prate,[79,159,1])
     ict = tf.concat([prmsl,t2m,prate],2) # Now [79,159,3]
@@ -72,15 +73,19 @@ def make_discriminator_model():
     model.add(tf.keras.layers.Conv2D(27, (3, 3), strides=(1, 1), padding='same',
                                                input_shape=[79, 159, 3]))
     model.add(tf.keras.layers.LeakyReLU())
+    model.add(tf.keras.layers.Dropout(0.3))
 
     model.add(tf.keras.layers.Conv2D(9, (3, 3), strides=(2, 2), padding='valid'))
     model.add(tf.keras.layers.LeakyReLU())
+    model.add(tf.keras.layers.Dropout(0.3))
 
     model.add(tf.keras.layers.Conv2D(3, (3, 3), strides=(2, 2), padding='valid'))
     model.add(tf.keras.layers.LeakyReLU())
+    model.add(tf.keras.layers.Dropout(0.3))
 
     model.add(tf.keras.layers.Conv2D(1, (3, 3), strides=(2, 2), padding='valid'))
     model.add(tf.keras.layers.LeakyReLU())
+    model.add(tf.keras.layers.Dropout(0.3))
 
     model.add(tf.keras.layers.Flatten())
     model.add(tf.keras.layers.Dense(1))

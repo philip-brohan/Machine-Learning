@@ -49,9 +49,6 @@ def load_tensor(file_name):
                                       'air.2m','prate')
     sict  = tf.read_file(file_name)
     prate = tf.parse_tensor(sict,numpy.float32)
-    prate = tf.math.maximum(prate,0)
-    prate *= 10000
-    prate = tf.math.sqrt(prate)
     prate = tf.reshape(prate,[79,159,1])
     ict = tf.concat([prmsl,t2m,prate],2) # Now [79,159,3]
     ict = tf.reshape(ict,[79,159,3])

@@ -85,6 +85,9 @@ prmsl=rr_cube(prmsl.extract(iris.Constraint(member=1)))
 prate=twcr.load('prate',datetime.datetime(2009,3,12,18),
                            version='2c')
 prate=rr_cube(prate.extract(iris.Constraint(member=1)))
+rh   =twcr.load('rh9950',datetime.datetime(2009,3,12,18),
+                           version='2c')
+rh   =rr_cube(rh.extract(iris.Constraint(member=1)))
 t2m=twcr.load('air.2m',datetime.datetime(2009,3,12,18),
                            version='2c')
 t2m=rr_cube(t2m.extract(iris.Constraint(member=1)))
@@ -108,9 +111,10 @@ t2m_t.data /=  50
 t2m_t = tf.convert_to_tensor(t2m_t.data, numpy.float32)
 t2m_t = tf.reshape(t2m_t,[79,159,1])
 prate_t = prate.copy()
-prate_t.data = tf.math.maximum(prate_t.data,0)
-prate_t.data *= 10000
-prate_t.data = tf.math.sqrt(prate_t.data)
+s=prate_t.shape
+prate_t.data=(prate_t.data*1000+rh.data/100+
+                 numpy.random.normal(0,0.05,len(rh.data.flatten())).reshape(s))
+prate_t.data -= 1
 prate_t = tf.convert_to_tensor(prate_t.data, numpy.float32)
 prate_t = tf.reshape(prate_t,[79,159,1])
 ict = tf.concat([prmsl_t,t2m_t,prate_t],2) # Now [79,159,3]
@@ -119,16 +123,19 @@ result = autoencoder.predict_on_batch(ict)
 result = tf.reshape(result,[79,159,3])
 prmsl_r = prmsl.copy()
 prmsl_r.data = tf.reshape(result.numpy()[:,:,0],[79,159]).numpy()
+prmsl_u=prmsl_r.copy()
 prmsl_r.data *= 3000
 prmsl_r.data += 101325
 t2m_r = t2m.copy()
 t2m_r.data = tf.reshape(result.numpy()[:,:,1],[79,159]).numpy()
+t2m_u=t2m_r.copy()
 t2m_r.data *= 50
 t2m_r.data += 280
 prate_r = prate.copy()
 prate_r.data = tf.reshape(result.numpy()[:,:,2],[79,159]).numpy()
-prate_r.data = prate_r.data**2
-prate_r.data /= 10000
+prate_u=prate_r.copy()
+prate_r.data /= 1000
+prate_r.data[prate_r.data<0]=0
 
 fig=Figure(figsize=(9.6*1.2,10.8),
            dpi=100,
@@ -155,15 +162,15 @@ three_plot(ax_reconstructed,prmsl_r,prate_r,t2m_r)
 
 # Scatterplot of encoded v original
 def plot_scatter(ax,ic,pm):
-    dmin=min(ic.data.min(),pm.data.min())
-    dmax=max(ic.data.max(),pm.data.max())
+    dmin=min(ic.min(),pm.min())
+    dmax=max(ic.max(),pm.max())
     dmean=(dmin+dmax)/2
     dmax=dmean+(dmax-dmean)*1.05
     dmin=dmean-(dmean-dmin)*1.05
     ax.set_xlim(dmin,dmax)
     ax.set_ylim(dmin,dmax)
-    ax.scatter(x=pm.data.flatten(),
-               y=ic.data.flatten(),
+    ax.scatter(x=pm.flatten(),
+               y=ic.flatten(),
                c='black',
                alpha=0.25,
                marker='.',
@@ -176,11 +183,11 @@ def plot_scatter(ax,ic,pm):
             linewidth=0.5)
     
 ax_prmsl=fig.add_axes([0.82,0.82,0.16,0.17])
-plot_scatter(ax_prmsl,prmsl/100,prmsl_r/100) # hPa
+plot_scatter(ax_prmsl,prmsl_t.numpy(),prmsl_u.data) # Normalised units
 ax_t2m=fig.add_axes([0.82,0.575,0.16,0.17])
-plot_scatter(ax_t2m,t2m-273.18,t2m_r-273.18) # degC
+plot_scatter(ax_t2m,t2m_t.numpy(),t2m_u.data)
 ax_prate=fig.add_axes([0.82,0.33,0.16,0.17])
-plot_scatter(ax_prate,prate*1000,prate_r*1000) # arbitrary
+plot_scatter(ax_prate,prate_t.numpy(),prate_u.data)
 
 # Plot the training history
 history_save_file=("%s/Machine-Learning-experiments/"+
