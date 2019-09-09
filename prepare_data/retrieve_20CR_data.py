@@ -6,7 +6,7 @@
 import datetime
 import IRData.twcr as twcr
 
-for year in range(1969,2009):
+for year in range(1969,2011):
     # 2c is in 1 year batches so month and day don't matter
     dte=datetime.datetime(year,1,1)
     twcr.fetch('prmsl',dte,version='2c')

@@ -79,16 +79,16 @@ def three_plot(ax,prmsl,prate,t2m):
 
  
 # Get the 20CR data
-prmsl=twcr.load('prmsl',datetime.datetime(2009,3,12,18),
+prmsl=twcr.load('prmsl',datetime.datetime(2010,3,12,18),
                            version='2c')
 prmsl=rr_cube(prmsl.extract(iris.Constraint(member=1)))
-prate=twcr.load('prate',datetime.datetime(2009,3,12,18),
+prate=twcr.load('prate',datetime.datetime(2010,3,12,18),
                            version='2c')
 prate=rr_cube(prate.extract(iris.Constraint(member=1)))
-rh   =twcr.load('rh9950',datetime.datetime(2009,3,12,18),
+rh   =twcr.load('rh9950',datetime.datetime(2010,3,12,18),
                            version='2c')
 rh   =rr_cube(rh.extract(iris.Constraint(member=1)))
-t2m=twcr.load('air.2m',datetime.datetime(2009,3,12,18),
+t2m=twcr.load('air.2m',datetime.datetime(2010,3,12,18),
                            version='2c')
 t2m=rr_cube(t2m.extract(iris.Constraint(member=1)))
 

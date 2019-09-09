@@ -91,16 +91,18 @@ if args.source=='20CR2c':
         ic.data /= 50
     elif args.variable=='prate':
         # Mix in the humidity to get rid of the spike at 0
-        h=twcr.load('rh9950',datetime.datetime(args.year,args.month,
-                                                args.day,args.hour)+
-                               datetime.timedelta(hours=24),
-                             version='2c')
-        h=h.extract(iris.Constraint(member=args.member))
-        h=rr_cube(h)
-        s=h.shape
-        ic.data=(ic.data*1000+h.data/100+
-                 numpy.random.normal(0,0.05,len(h.data.flatten())).reshape(s))
-        ic.data -= 1
+        #h=twcr.load('rh9950',datetime.datetime(args.year,args.month,
+        #                                        args.day,args.hour)+
+        #                       datetime.timedelta(hours=24),
+        #                     version='2c')
+        #h=h.extract(iris.Constraint(member=args.member))
+        #h=rr_cube(h)
+        #s=h.shape
+        #ic.data=(ic.data*1000+h.data/100+
+        #         numpy.random.normal(0,0.05,len(h.data.flatten())).reshape(s))
+        #ic.data -= 1
+        ic.data=ic.data*1000+1.001
+        ic.data=numpy.log(ic.data)
     
 else:
     raise ValueError('Source %s is not supported' % args.source)
