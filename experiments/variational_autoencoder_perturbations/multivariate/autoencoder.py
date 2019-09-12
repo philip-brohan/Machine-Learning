@@ -15,7 +15,7 @@ import numpy
 from glob import glob
 
 # How many epochs to train for
-n_epochs=1000
+n_epochs=100
 
 # Dimensionality of the latent space
 latent_dim=100
@@ -86,16 +86,16 @@ original = tf.keras.layers.Input(shape=(79,159,3,), name='encoder_input')
 # Encoding layers
 x = tf.keras.layers.Conv2D(3, (3, 3), padding='same')(original)
 x = tf.keras.layers.ELU()(x)
-#x = tf.keras.layers.Dropout(0.3)(x)
+x = tf.keras.layers.Dropout(0.3)(x)
 x = tf.keras.layers.Conv2D(9, (3, 3), strides= (2,2), padding='valid')(x)
 x = tf.keras.layers.ELU()(x)
-#x = tf.keras.layers.Dropout(0.3)(x)
+x = tf.keras.layers.Dropout(0.3)(x)
 x = tf.keras.layers.Conv2D(27, (3, 3), strides= (2,2), padding='valid')(x)
 x = tf.keras.layers.ELU()(x)
-#x = tf.keras.layers.Dropout(0.3)(x)
+x = tf.keras.layers.Dropout(0.3)(x)
 x = tf.keras.layers.Conv2D(81, (3, 3), strides= (2,2), padding='valid')(x)
 x = tf.keras.layers.ELU()(x)
-#x = tf.keras.layers.Dropout(0.3)(x)
+x = tf.keras.layers.Dropout(0.3)(x)
 
 # N-dimensional latent space representation
 x = tf.keras.layers.Reshape(target_shape=(9*19*81,))(x)

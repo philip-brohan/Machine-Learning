@@ -52,42 +52,32 @@ def rr_cube(cbe):
     n_cube=cbe.regrid(dummy_cube,iris.analysis.Linear())
     return(n_cube)
 
-# Function to do the multivariate plot
-def three_plot(ax,prmsl,prate,t2m):
+# Function to do a contour comparison
+def contour_plot(ax,original,reconstructed,scale,levels):
     ax.set_axis_off() # Don't want surrounding x and y axis
     ax.background_patch.set_facecolor((0.88,0.88,0.88,1))
     land_img=ax.background_img(name='GreyT', resolution='low')
-    # Plot the temperature
-    plot_cube=mg.utils.dummy_cube(ax,0.25)
-    t2m = t2m.regrid(plot_cube,iris.analysis.Linear())
-    # Re-map to highlight small differences
-    s=t2m.data.shape
-    t2m.data=qcut(t2m.data.flatten(),20,labels=False).reshape(s)
-    # Plot as a colour map
-    lats = t2m.coord('latitude').points
-    lons = t2m.coord('longitude').points
-    t2m_img=ax.pcolorfast(lons, lats, t2m.data,
-                          cmap='coolwarm',
-                          vmin=0,
-                          vmax=20,
-                          alpha=0.5)
-    # Also pressure
-    mg.pressure.plot(ax,prmsl,scale=0.01,resolution=0.25,
+    # Original
+    mg.pressure.plot(ax,original,scale=scale,resolution=0.25,
+                     levels=levels,
+                     colors='red',
+                     label=False,
                      linewidths=1)
-    # Also precip
-    mg.precipitation.plot(ax,prate,resolution=0.25,vmin=-0.01,vmax=0.04)
+    # Reconstructed
+    mg.pressure.plot(ax,reconstructed,scale=scale,resolution=0.25,
+                     levels=levels,
+                     colors='blue',
+                     label=False,
+                     linewidths=1)
 
  
 # Get the 20CR data
 prmsl=twcr.load('prmsl',datetime.datetime(2010,3,12,18),
                            version='2c')
 prmsl=rr_cube(prmsl.extract(iris.Constraint(member=1)))
-prate=twcr.load('prate',datetime.datetime(2010,3,12,18),
+z500=twcr.load('z500',datetime.datetime(2010,3,12,18),
                            version='2c')
-prate=rr_cube(prate.extract(iris.Constraint(member=1)))
-rh   =twcr.load('rh9950',datetime.datetime(2010,3,12,18),
-                           version='2c')
-rh   =rr_cube(rh.extract(iris.Constraint(member=1)))
+z500=rr_cube(z500.extract(iris.Constraint(member=1)))
 t2m=twcr.load('air.2m',datetime.datetime(2010,3,12,18),
                            version='2c')
 t2m=rr_cube(t2m.extract(iris.Constraint(member=1)))
@@ -110,14 +100,12 @@ t2m_t.data -= 280
 t2m_t.data /=  50
 t2m_t = tf.convert_to_tensor(t2m_t.data, numpy.float32)
 t2m_t = tf.reshape(t2m_t,[79,159,1])
-prate_t = prate.copy()
-s=prate_t.shape
-prate_t.data=(prate_t.data*1000+rh.data/100+
-                 numpy.random.normal(0,0.05,len(rh.data.flatten())).reshape(s))
-prate_t.data -= 1
-prate_t = tf.convert_to_tensor(prate_t.data, numpy.float32)
-prate_t = tf.reshape(prate_t,[79,159,1])
-ict = tf.concat([prmsl_t,t2m_t,prate_t],2) # Now [79,159,3]
+z500_t = z500.copy()
+z500_t.data -= 5300
+z500_t.data /= 600
+z500_t = tf.convert_to_tensor(z500_t.data, numpy.float32)
+z500_t = tf.reshape(z500_t,[79,159,1])
+ict = tf.concat([prmsl_t,t2m_t,z500_t],2) # Now [79,159,3]
 ict = tf.reshape(ict,[1,79,159,3])
 result = autoencoder.predict_on_batch(ict)
 result = tf.reshape(result,[79,159,3])
@@ -131,13 +119,13 @@ t2m_r.data = tf.reshape(result.numpy()[:,:,1],[79,159]).numpy()
 t2m_u=t2m_r.copy()
 t2m_r.data *= 50
 t2m_r.data += 280
-prate_r = prate.copy()
-prate_r.data = tf.reshape(result.numpy()[:,:,2],[79,159]).numpy()
-prate_u=prate_r.copy()
-prate_r.data /= 1000
-prate_r.data[prate_r.data<0]=0
+z500_r = z500.copy()
+z500_r.data = tf.reshape(result.numpy()[:,:,2],[79,159]).numpy()
+z500_u=z500_r.copy()
+z500_r.data *= 600
+z500_r.data += 5300
 
-fig=Figure(figsize=(9.6*1.2,10.8),
+fig=Figure(figsize=(19.2,10.8),
            dpi=100,
            facecolor=(0.88,0.88,0.88,1),
            edgecolor=None,
@@ -147,18 +135,24 @@ fig=Figure(figsize=(9.6*1.2,10.8),
            tight_layout=None)
 canvas=FigureCanvas(fig)
 
-# Two maps, original and reconstructed
+# Pressure map
 matplotlib.rc('image',aspect='auto')
 projection=ccrs.RotatedPole(pole_longitude=60.0,
                             pole_latitude=0.0,
                             central_rotated_longitude=270.0)
 extent=[-180,180,-90,90]
-ax_original=fig.add_axes([0.005,0.525,0.75,0.45],projection=projection)
-ax_original.set_extent(extent, crs=projection)
-three_plot(ax_original,prmsl,prate,t2m)
-ax_reconstructed=fig.add_axes([0.005,0.025,0.75,0.45],projection=projection)
-ax_reconstructed.set_extent(extent, crs=projection)
-three_plot(ax_reconstructed,prmsl_r,prate_r,t2m_r)
+ax_prmsl=fig.add_axes([0.01,0.505,0.485,0.485],projection=projection)
+ax_prmsl.set_extent(extent, crs=projection)
+contour_plot(ax_prmsl,prmsl,prmsl_r,scale=0.01,
+                levels=numpy.arange(870,1050,7))
+ax_t2m=fig.add_axes([0.505,0.51,0.485,0.485],projection=projection)
+ax_t2m.set_extent(extent, crs=projection)
+contour_plot(ax_t2m,t2m,t2m_r,scale=1.0,
+                levels=numpy.arange(230,310,10))
+ax_z500=fig.add_axes([0.01,0.01,0.485,0.485],projection=projection)
+ax_z500.set_extent(extent, crs=projection)
+contour_plot(ax_z500,z500,z500_r,scale=1.0,
+                levels=numpy.arange(4700,6500,200))
 
 # Scatterplot of encoded v original
 def plot_scatter(ax,ic,pm):
@@ -182,12 +176,12 @@ def plot_scatter(ax,ic,pm):
             linestyle='-', 
             linewidth=0.5)
     
-ax_prmsl=fig.add_axes([0.82,0.82,0.16,0.17])
-plot_scatter(ax_prmsl,prmsl_t.numpy(),prmsl_u.data) # Normalised units
-ax_t2m=fig.add_axes([0.82,0.575,0.16,0.17])
-plot_scatter(ax_t2m,t2m_t.numpy(),t2m_u.data)
-ax_prate=fig.add_axes([0.82,0.33,0.16,0.17])
-plot_scatter(ax_prate,prate_t.numpy(),prate_u.data)
+ax_prmsl_s=fig.add_axes([0.55,0.3,0.15,0.2])
+plot_scatter(ax_prmsl_s,prmsl_t.numpy(),prmsl_u.data) # Normalised units
+ax_t2m_s=fig.add_axes([0.79,0.3,0.15,0.2])
+plot_scatter(ax_t2m_s,t2m_t.numpy(),t2m_u.data)
+ax_z500_s=fig.add_axes([0.55,0.04,0.15,0.2])
+plot_scatter(ax_z500_s,z500_t.numpy(),z500_u.data)
 
 # Plot the training history
 history_save_file=("%s/Machine-Learning-experiments/"+
@@ -195,7 +189,7 @@ history_save_file=("%s/Machine-Learning-experiments/"+
                    "multivariate/saved_models/history_to_%04d.pkl") % (
                        os.getenv('SCRATCH'),args.epoch)
 history=pickle.load( open( history_save_file, "rb" ) )
-ax=fig.add_axes([0.82,0.05,0.16,0.21])
+ax=fig.add_axes([0.79,0.04,0.15,0.2])
 # Axes ranges from data
 ax.set_xlim(0,len(history['loss']))
 ax.set_ylim(0,numpy.max(numpy.concatenate((history['loss'],
