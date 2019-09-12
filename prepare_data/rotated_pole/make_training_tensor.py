@@ -89,6 +89,9 @@ if args.source=='20CR2c':
     elif args.variable=='air.2m':
         ic.data -= 280
         ic.data /= 50
+    elif args.variable=='z500':
+        ic.data -= 5300
+        ic.data /= 600
     elif args.variable=='prate':
         # Mix in the humidity to get rid of the spike at 0
         #h=twcr.load('rh9950',datetime.datetime(args.year,args.month,

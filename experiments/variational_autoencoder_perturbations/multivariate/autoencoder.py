@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 # Variational autoencoder for 20CR prmsl fields.
-# This version does pressure, temperature, and precip.
+# This version does pressure, temperature, and z500.
 
 # This should be a generative model.
 
@@ -46,7 +46,7 @@ def load_tensor(file_name):
     t2m   = tf.parse_tensor(sict,numpy.float32)
     t2m   = tf.reshape(t2m,[79,159,1])
     file_name = tf.strings.regex_replace(file_name,
-                                      'air.2m','prate')
+                                      'air.2m','z500')
     sict  = tf.read_file(file_name)
     prate = tf.parse_tensor(sict,numpy.float32)
     prate = tf.reshape(prate,[79,159,1])

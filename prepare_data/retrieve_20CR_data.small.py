@@ -13,3 +13,4 @@ for year in range(1969,1990):
     twcr.fetch('prmsl',dte,version='2c')
     twcr.fetch('air.2m',dte,version='2c')
     twcr.fetch('prate',dte,version='2c')
+    twcr.fetch('z500',dte,version='2c')
