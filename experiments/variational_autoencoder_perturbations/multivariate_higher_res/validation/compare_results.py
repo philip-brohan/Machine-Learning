@@ -72,13 +72,13 @@ def contour_plot(ax,original,reconstructed,scale,levels):
 
  
 # Get the 20CR data
-prmsl=twcr.load('prmsl',datetime.datetime(2010,3,12,18),
+prmsl=twcr.load('prmsl',datetime.datetime(2009,3,12,18),
                            version='2c')
 prmsl=rr_cube(prmsl.extract(iris.Constraint(member=1)))
-z500=twcr.load('z500',datetime.datetime(2010,3,12,18),
+z500=twcr.load('z500',datetime.datetime(2009,3,12,18),
                            version='2c')
 z500=rr_cube(z500.extract(iris.Constraint(member=1)))
-t2m=twcr.load('air.2m',datetime.datetime(2010,3,12,18),
+t2m=twcr.load('air.2m',datetime.datetime(2009,3,12,18),
                            version='2c')
 t2m=rr_cube(t2m.extract(iris.Constraint(member=1)))
 

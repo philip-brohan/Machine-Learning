@@ -15,10 +15,10 @@ import numpy
 from glob import glob
 
 # How many epochs to train for
-n_epochs=100
+n_epochs=1000
 
 # Dimensionality of the latent space
-latent_dim=100
+latent_dim=250
 
 # Target data setup
 buffer_size=100
@@ -138,11 +138,11 @@ autoencoder = tf.keras.models.Model(inputs=original, outputs=output, name='autoe
 #  and the KL divergence of the latent space (from a multivariate gaussian).
 
 reconstruction_loss = tf.keras.losses.mse(original, output)
-reconstruction_loss *= latent_dim * 100
+reconstruction_loss *= 100
 
 kl_loss = 1 + z_log_var - tf.keras.backend.square(z_mean) - tf.keras.backend.exp(z_log_var)
 kl_loss = tf.keras.backend.sum(kl_loss, axis=-1)
-kl_loss *= -0.5
+kl_loss *= -0.5/latent_dim
 
 vae_loss = tf.keras.backend.mean(reconstruction_loss + kl_loss)
     
