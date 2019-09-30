@@ -13,3 +13,5 @@ for year in range(1969,2011):
     twcr.fetch('air.2m',dte,version='2c')
     twcr.fetch('prate',dte,version='2c')
     twcr.fetch('z500',dte,version='2c')
+    twcr.fetch('uwnd.10m',dte,version='2c')
+    twcr.fetch('vwnd.10m',dte,version='2c')
