@@ -107,6 +107,11 @@ Please <a href="https://github.com/philip-brohan/Machine-Learning/issues/new">ra
                 <span class="n">x</span> <span class="o">-=</span> <span class="mi">101325</span>
                 <span class="n">x</span> <span class="o">/=</span> <span class="mi">3000</span>
                 <span class="k">return</span> <span class="n">x</span>
+        <span class="k">elif</span> <span class="n">variable</span><span class="o">==</span><span class="s1">&#39;air.2m&#39;</span><span class="p">:</span>
+            <span class="k">def</span> <span class="nf">normalise</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+                <span class="n">x</span> <span class="o">-=</span> <span class="mi">280</span>
+                <span class="n">x</span> <span class="o">/=</span> <span class="mi">50</span>
+                <span class="k">return</span> <span class="n">x</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Don&#39;t know how to normalise </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">variable</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
@@ -134,6 +139,11 @@ Please <a href="https://github.com/philip-brohan/Machine-Learning/issues/new">ra
             <span class="k">def</span> <span class="nf">unnormalise</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
                 <span class="n">x</span> <span class="o">*=</span> <span class="mi">3000</span>
                 <span class="n">x</span> <span class="o">+=</span> <span class="mi">101325</span>
+                <span class="k">return</span> <span class="n">x</span>
+        <span class="k">elif</span> <span class="n">variable</span><span class="o">==</span><span class="s1">&#39;air.2m&#39;</span><span class="p">:</span>
+            <span class="k">def</span> <span class="nf">unnormalise</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+                <span class="n">x</span> <span class="o">*=</span> <span class="mi">50</span>
+                <span class="n">x</span> <span class="o">+=</span> <span class="mi">280</span>
                 <span class="k">return</span> <span class="n">x</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Don&#39;t know how to unnormalise </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">variable</span><span class="p">)</span>

@@ -173,8 +173,23 @@ Please <a href="https://github.com/philip-brohan/Machine-Learning/issues/new">ra
     <span class="k">elif</span> <span class="n">args</span><span class="o">.</span><span class="n">variable</span><span class="o">==</span><span class="s1">&#39;air.2m&#39;</span><span class="p">:</span>
         <span class="n">ic</span><span class="o">.</span><span class="n">data</span> <span class="o">-=</span> <span class="mi">280</span>
         <span class="n">ic</span><span class="o">.</span><span class="n">data</span> <span class="o">/=</span> <span class="mi">50</span>
+    <span class="k">elif</span> <span class="n">args</span><span class="o">.</span><span class="n">variable</span><span class="o">==</span><span class="s1">&#39;z500&#39;</span><span class="p">:</span>
+        <span class="n">ic</span><span class="o">.</span><span class="n">data</span> <span class="o">-=</span> <span class="mi">5300</span>
+        <span class="n">ic</span><span class="o">.</span><span class="n">data</span> <span class="o">/=</span> <span class="mi">600</span>
     <span class="k">elif</span> <span class="n">args</span><span class="o">.</span><span class="n">variable</span><span class="o">==</span><span class="s1">&#39;prate&#39;</span><span class="p">:</span>
-        <span class="k">pass</span>
+        <span class="c1"># Mix in the humidity to get rid of the spike at 0</span>
+        <span class="c1">#h=twcr.load(&#39;rh9950&#39;,datetime.datetime(args.year,args.month,</span>
+        <span class="c1">#                                        args.day,args.hour)+</span>
+        <span class="c1">#                       datetime.timedelta(hours=24),</span>
+        <span class="c1">#                     version=&#39;2c&#39;)</span>
+        <span class="c1">#h=h.extract(iris.Constraint(member=args.member))</span>
+        <span class="c1">#h=rr_cube(h)</span>
+        <span class="c1">#s=h.shape</span>
+        <span class="c1">#ic.data=(ic.data*1000+h.data/100+</span>
+        <span class="c1">#         numpy.random.normal(0,0.05,len(h.data.flatten())).reshape(s))</span>
+        <span class="c1">#ic.data -= 1</span>
+        <span class="n">ic</span><span class="o">.</span><span class="n">data</span><span class="o">=</span><span class="n">ic</span><span class="o">.</span><span class="n">data</span><span class="o">*</span><span class="mi">1000</span><span class="o">+</span><span class="mf">1.001</span>
+        <span class="n">ic</span><span class="o">.</span><span class="n">data</span><span class="o">=</span><span class="n">numpy</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">ic</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
     
 <span class="k">else</span><span class="p">:</span>
     <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Source </span><span class="si">%s</span><span class="s1"> is not supported&#39;</span> <span class="o">%</span> <span class="n">args</span><span class="o">.</span><span class="n">source</span><span class="p">)</span>
