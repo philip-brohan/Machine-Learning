@@ -39,12 +39,12 @@ def load_tensor(file_name):
     t2m = tf.parse_tensor(sict,numpy.float32)
     t2m = tf.reshape(t2m,[79,159,1])
     file_name = tf.strings.regex_replace(file_name,
-                                      'air.2m','prate')
+                                      'air.2m','prmsl')
     sict  = tf.read_file(file_name)
-    prate = tf.parse_tensor(sict,numpy.float32)
-    prate = tf.reshape(prate,[79,159,1])
+    prmsl = tf.parse_tensor(sict,numpy.float32)
+    prmsl = tf.reshape(prmsl,[79,159,1])
     file_name = tf.strings.regex_replace(file_name,
-                                      'prate','uwnd.10m')
+                                      'prmsl','uwnd.10m')
     sict  = tf.read_file(file_name)
     uwnd  = tf.parse_tensor(sict,numpy.float32)
     uwnd  = tf.reshape(uwnd,[79,159,1])
@@ -53,7 +53,7 @@ def load_tensor(file_name):
     sict  = tf.read_file(file_name)
     vwnd  = tf.parse_tensor(sict,numpy.float32)
     vwnd  = tf.reshape(vwnd,[79,159,1])
-    ict = tf.concat([t2m,t2m,t2m,t2m],2) # Now [79,159,4]
+    ict = tf.concat([t2m,prmsl,uwnd,vwnd],2) # Now [79,159,4]
     ict = tf.reshape(ict,[79,159,4])
     return ict
 
@@ -114,7 +114,7 @@ generator = tf.keras.models.Model(encoded, decoded, name='generator')
 output = generator(encoder(original))
 autoencoder = tf.keras.models.Model(inputs=original, outputs=output, name='autoencoder')
 
-reconstruction_loss = tf.keras.losses.mse(original[:,:,3], output[:,:,3])
+reconstruction_loss = tf.keras.losses.mse(original, output)
 
 autoencoder.add_loss(reconstruction_loss)
 

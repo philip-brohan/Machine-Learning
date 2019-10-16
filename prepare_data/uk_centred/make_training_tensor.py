@@ -67,6 +67,11 @@ def normalise_wind(p):
    res=p.copy()
    res.data /= 12
    return res
+def normalise_prmsl(p):
+   res=p.copy()
+   res.data -= 101325
+   res.data /= 3000
+   return res
 
     
 # Function to resize and rotate pole
@@ -107,6 +112,8 @@ if args.source=='20CR2c':
         ic=normalise_t2m(ic)
     elif args.variable=='prate':
         ic=normalise_precip(ic)
+    elif args.variable=='prmsl':
+        ic=normalise_prmsl(ic)
     
 else:
     raise ValueError('Source %s is not supported' % args.source)
