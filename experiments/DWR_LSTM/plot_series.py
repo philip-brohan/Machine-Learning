@@ -60,8 +60,6 @@ matplotlib.rc('font', **font)
 
 # Single axes - var v. time
 ax=fig.add_axes([0.05,0.05,0.945,0.94])
-# Axes ranges
-#ax.set_xlim(args.start,args.end)
 ax.set_xlim(min(obs['Date'].values),
             max(obs['Date'].values))
 ax.set_ylim(min(obs[args.station])/100-1,
