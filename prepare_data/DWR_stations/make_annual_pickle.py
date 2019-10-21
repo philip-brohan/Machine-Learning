@@ -51,4 +51,8 @@ for index, row in obs.iterrows():
                      ('longitude',row['longitude'])],
                      iris.analysis.Linear()).data.data
 
+# Decimate the t2m data to every 6-hours
+if args.variable=='air.2m':
+   df=df.iloc[::2,:]
+
 pickle.dump( df, open( args.opfile, "wb" ) )
