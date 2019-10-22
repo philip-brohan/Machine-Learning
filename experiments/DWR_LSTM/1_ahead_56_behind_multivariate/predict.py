@@ -9,30 +9,64 @@ import pandas
 import numpy
 import tensorflow as tf
 
+# Set the model parameters from the command line
+import argparse
+parser = argparse.ArgumentParser()
+parser.add_argument("--station", help="Target station",
+                    type=str,default='LONDON',required=False)
+parser.add_argument("--source", help="Source stations",
+                    type=str,default=None,action='append')
+parser.add_argument("--extras", help="Extra predictors",
+                    type=str,default=None,action='append')
+parser.add_argument("--source_len", help="No of previous steps to use",
+                    type=int,required=False,default=12)
+parser.add_argument("--target_len", help="Steps forward to predict",
+                    type=int,required=False,default=12)
+parser.add_argument("--epochs", help="Epochs to run",
+                    type=int,required=False,default=10)
+parser.add_argument("--n_nodels", help="No. of LSTM nodes",
+                    type=int,required=False,default=32)
+parser.add_argument("--opdir", help="Directory for output files",
+                    type=str,required=False,default='test')
+args = parser.parse_args()
+args.opdir=("%s/Machine-Learning/experiments/DWR_LSTM/multivariate_lead_times/cases/%s" %
+               (os.getenv('SCRATCH'),args.opdir))
+if not os.path.isdir(args.opdir):
+    os.makedirs(args.opdir)
 
-# Model metadata - needed by validation and analysis scripts
-model_meta={
-    'station':'LONDON', # Target to reporduce
-    'sources':['SCILLY', 'DUNGENESS', 'LONDON', 'VALENCIA', 'YARMOUTH', 'HOLYHEAD',  
-         'BLACKSODPOINT', 'DONAGHADEE', 'SHIELDS', 'FORTWILLIAM', 'ABERDEEN', 
-         'STORNOWAY', 'WICK'],
-#    'sources':['LONDON'],     # List of stations to use as model input
-    'random':False,   # Use a random series as a predictor
-    'annual':True,    # Use the annual cycle as a predictor
-    'diurnal':True,   # Use the diurnal cycle as a predictor
-    'source_len':12,  # No of data points in the past to use
-    'target_len':12,  # No of steps into the future to make prediction
-    'persistence_error':{'prmsl':None,'air.2m':None}
-}
+model_meta={}
+model_meta['station']=args.station
+if args.source is None:
+    model_meta['sources']=[]
+else:
+    model_meta['sources']=args.source
+model_meta['random']=False
+model_meta['annual']=False
+model_meta['diurnal']=False
+if args.extras is not None:
+    for extra in args.extras:
+        if extra == 'random': 
+            model_meta['random']=True
+        elif extra == 'annual': 
+            model_meta['annual']=True
+        elif extra == 'diurnal': 
+            model_meta['diurnal']=True
+        else:
+            raise Exception('Unsupported extra')
+model_meta['source_len']=args.source_len
+
+#    'sources':['SCILLY', 'DUNGENESS', 'LONDON', 'VALENCIA', 'YARMOUTH', 'HOLYHEAD',  
+#         'BLACKSODPOINT', 'DONAGHADEE', 'SHIELDS', 'FORTWILLIAM', 'ABERDEEN', 
+#         'STORNOWAY', 'WICK'],
 
 # Training parameters
 BATCH_SIZE = 64
 BUFFER_SIZE = 1000
-EPOCHS = 10
+EPOCHS = args.epoch
 
 # Model specification
 # One layer, how many nodes?
-lstm_node_n=128
+lstm_node_n=args.n_nodes
 
 # Get the position in the annual cycle
 def get_annual(dates,year):
