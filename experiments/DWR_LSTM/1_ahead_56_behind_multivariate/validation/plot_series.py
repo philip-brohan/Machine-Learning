@@ -18,26 +18,24 @@ from matplotlib.patches import Polygon
 import argparse
 parser = argparse.ArgumentParser()
 parser.add_argument("--start", help="Start time: YYYY-MM-DD:HH",
-                    type=str,required=True)
+                    type=str,default='2006-01-01:00',required=False)
 parser.add_argument("--end", help="End time: YYYY-MM-DD:HH",
-                    type=str,required=True)
-parser.add_argument("--epoch", help="Use saved model at which epoch",
-                    type=int,required=True)
+                    type=str,default='2006-12-31:21',required=False)
+parser.add_argument("--opdir", help="Directory with model files",
+                    type=str,required=False,default='default')
 args = parser.parse_args()
+args.opdir=("%s/Machine-Learning/experiments/DWR_LSTM/multivariate/%s" %
+               (os.getenv('SCRATCH'),args.opdir))
 args.start=datetime.datetime.strptime(args.start,"%Y-%m-%d:%H")
 args.end  =datetime.datetime.strptime(args.end,  "%Y-%m-%d:%H")
 
 
 # Load the saved model
-save_file=("%s/Machine-Learning-experiments/"+
-           "DWR_LSTM/1_ahead_56_behind_multivariate/"+
-           "saved_models/Epoch_%04d") % (
-                 os.getenv('SCRATCH'),args.epoch)
+save_file="%s/model" % args.opdir
 predictor=tf.keras.models.load_model(save_file)
 # Retrieve the model metadata
-meta_file="%s/meta_%04d" % (os.path.dirname(save_file),args.epoch)
+meta_file="%s/meta.pkl" % args.opdir
 model_meta=pickle.load( open( meta_file, "rb" ) )
-
 
 # Get the position in the annual cycle
 def get_annual(dates,year):

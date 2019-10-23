@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 # Build an LSTM model to predict the next pressure at a station
-#  using the 56 previous pressures (14 days worth).
+
 
 import os
 import pickle
@@ -24,12 +24,12 @@ parser.add_argument("--target_len", help="Steps forward to predict",
                     type=int,required=False,default=12)
 parser.add_argument("--epochs", help="Epochs to run",
                     type=int,required=False,default=10)
-parser.add_argument("--n_nodels", help="No. of LSTM nodes",
+parser.add_argument("--n_nodes", help="No. of LSTM nodes",
                     type=int,required=False,default=32)
 parser.add_argument("--opdir", help="Directory for output files",
-                    type=str,required=False,default='test')
+                    type=str,required=False,default='default')
 args = parser.parse_args()
-args.opdir=("%s/Machine-Learning/experiments/DWR_LSTM/multivariate_lead_times/cases/%s" %
+args.opdir=("%s/Machine-Learning/experiments/DWR_LSTM/multivariate/%s" %
                (os.getenv('SCRATCH'),args.opdir))
 if not os.path.isdir(args.opdir):
     os.makedirs(args.opdir)
@@ -54,6 +54,7 @@ if args.extras is not None:
         else:
             raise Exception('Unsupported extra')
 model_meta['source_len']=args.source_len
+model_meta['target_len']=args.target_len
 
 #    'sources':['SCILLY', 'DUNGENESS', 'LONDON', 'VALENCIA', 'YARMOUTH', 'HOLYHEAD',  
 #         'BLACKSODPOINT', 'DONAGHADEE', 'SHIELDS', 'FORTWILLIAM', 'ABERDEEN', 
@@ -62,7 +63,7 @@ model_meta['source_len']=args.source_len
 # Training parameters
 BATCH_SIZE = 64
 BUFFER_SIZE = 1000
-EPOCHS = args.epoch
+EPOCHS = args.epochs
 
 # Model specification
 # One layer, how many nodes?
@@ -174,13 +175,10 @@ simple_lstm_model.fit(train_ds,
                       validation_steps=50)
 
 # Save the model
-save_file=("%s/Machine-Learning-experiments/"+
-           "DWR_LSTM/1_ahead_56_behind_multivariate/"+
-           "saved_models/Epoch_%04d") % (
-                 os.getenv('SCRATCH'),EPOCHS)
+save_file="%s/model" % args.opdir
 if not os.path.isdir(os.path.dirname(save_file)):
     os.makedirs(os.path.dirname(save_file))
 tf.keras.models.save_model(simple_lstm_model,save_file)
 # Save the training and normalisation parameters
-meta_file="%s/meta_%04d" % (os.path.dirname(save_file),EPOCHS)
+meta_file="%s/meta.pkl" % args.opdir
 pickle.dump(model_meta, open(meta_file, "wb"))
