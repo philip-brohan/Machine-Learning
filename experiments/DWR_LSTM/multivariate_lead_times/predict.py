@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
-# Build an LSTM model to predict the next pressure at a station
-#  using the 56 previous pressures (14 days worth).
+# Build an LSTM model and calculate its residual errors
 
 import os
 import pickle
@@ -9,29 +8,62 @@ import pandas
 import numpy
 import tensorflow as tf
 
+# Set the model parameters from the command line
+import argparse
+parser = argparse.ArgumentParser()
+parser.add_argument("--station", help="Target station",
+                    type=str,default='LONDON',required=False)
+parser.add_argument("--source", help="Source stations",
+                    type=str,default=None,action='append')
+parser.add_argument("--extras", help="Extra predictors",
+                    type=str,default=None,action='append')
+parser.add_argument("--source_len", help="No of previous steps to use",
+                    type=int,required=False,default=12)
+parser.add_argument("--target_len", help="Steps forward to predict",
+                    type=int,required=False,default=12)
+parser.add_argument("--epochs", help="Epochs to run",
+                    type=int,required=False,default=10)
+parser.add_argument("--n_nodes", help="No. of LSTM nodes",
+                    type=int,required=False,default=32)
+parser.add_argument("--opdir", help="Directory for output files",
+                    type=str,required=False,default='default')
+args = parser.parse_args()
+args.opdir=("%s/Machine-Learning/experiments/DWR_LSTM/multivariate_lead_times/%s" %
+               (os.getenv('SCRATCH'),args.opdir))
+if not os.path.isdir(args.opdir):
+    os.makedirs(args.opdir)
 
-# Model metadata - needed by validation and analysis scripts
-model_meta={
-    'station':'LONDON', # Target to reproduce
-    'sources':['SCILLY', 'DUNGENESS', 'LONDON', 'VALENCIA', 
-               'YARMOUTH', 'HOLYHEAD', 'BLACKSODPOINT', 'DONAGHADEE', 
-               'SHIELDS', 'FORTWILLIAM', 'ABERDEEN', 'STORNOWAY', 'WICK'],
-#    'sources':['LONDON'],     # List of stations to use as model input
-    'random':False,   # Use a random series as a predictor
-    'annual':True,    # Use the annual cycle as a predictor
-    'diurnal':True,   # Use the diurnal cycle as a predictor
-    'source_len':12,  # No of data points in the past to use
-    'target_len':None,  # No of steps into the future to make prediction
-}
+model_meta={}
+model_meta['station']=args.station
+if args.source is None:
+    model_meta['sources']=[]
+else:
+    model_meta['sources']=args.source
+model_meta['random']=False
+model_meta['annual']=False
+model_meta['diurnal']=False
+if args.extras is not None:
+    for extra in args.extras:
+        if extra == 'random': 
+            model_meta['random']=True
+        elif extra == 'annual': 
+            model_meta['annual']=True
+        elif extra == 'diurnal': 
+            model_meta['diurnal']=True
+        else:
+            raise Exception('Unsupported extra')
+model_meta['source_len']=args.source_len
+model_meta['target_len']=args.target_len
+
 
 # Training parameters
 BATCH_SIZE = 64
 BUFFER_SIZE = 1000
-EPOCHS = 10
+EPOCHS = args.epochs
 
 # Model specification
 # One layer, how many nodes?
-lstm_node_n=32
+lstm_node_n=args.n_nodes
 
 # Get the position in the annual cycle
 def get_annual(dates,year):
@@ -132,48 +164,48 @@ t2m_t=load_obs('air.2m',1969,2006)
 prmsl_v=load_obs('prmsl',2006,2009)
 t2m_v=load_obs('air.2m',2006,2009)
 
-for  model_meta['target_len'] in range(1,40):
 
-    train_source=make_source(prmsl_t,t2m_t)
-    train_target=make_target(prmsl_t,t2m_t)
-    train_ds = tf.data.Dataset.from_tensor_slices((train_source, train_target))
-    train_ds=train_ds.cache().shuffle(BUFFER_SIZE).batch(BATCH_SIZE).repeat()
+train_source=make_source(prmsl_t,t2m_t)
+train_target=make_target(prmsl_t,t2m_t)
+train_ds = tf.data.Dataset.from_tensor_slices((train_source, train_target))
+train_ds=train_ds.cache().shuffle(BUFFER_SIZE).batch(BATCH_SIZE).repeat()
 
-    val_source=make_source(prmsl_v,t2m_v)
-    val_target=make_target(prmsl_v,t2m_v)
-    val_ds = tf.data.Dataset.from_tensor_slices((val_source, val_target))
-    val_ds=val_ds.cache().shuffle(BUFFER_SIZE).batch(BATCH_SIZE).repeat()
+val_source=make_source(prmsl_v,t2m_v)
+val_target=make_target(prmsl_v,t2m_v)
+val_ds = tf.data.Dataset.from_tensor_slices((val_source, val_target))
+val_ds=val_ds.cache().shuffle(BUFFER_SIZE).batch(BATCH_SIZE).repeat()
 
-    # Define an LSTM model
-    simple_lstm_model = tf.keras.models.Sequential([
-        tf.keras.layers.LSTM(lstm_node_n, input_shape=train_source.shape[-2:]),
-        tf.keras.layers.Dense(2)
-    ])
-    simple_lstm_model.compile(optimizer='adam', loss='mean_squared_error')
+# Define an LSTM model
+simple_lstm_model = tf.keras.models.Sequential([
+    tf.keras.layers.LSTM(lstm_node_n, input_shape=train_source.shape[-2:]),
+    tf.keras.layers.Dense(2)])
+simple_lstm_model.compile(optimizer='adam', loss='mean_squared_error')
 
-    # Train the model
-    simple_lstm_model.fit(train_ds,
-                          epochs=EPOCHS,
-                          steps_per_epoch=1000,
-                          validation_data=val_ds, 
-                          validation_steps=50)
+# Train the model
+simple_lstm_model.fit(train_ds,
+                      epochs=EPOCHS,
+                      steps_per_epoch=1000,
+                      validation_data=val_ds, 
+                      validation_steps=50)
 
 # Calculate the prediction error and persistence error
-    prediction={'prmsl':[],'t2m':[]}
-    p=simple_lstm_model.predict(val_source)
-    prediction['prmsl']=unnormalise(p[:,0],'prmsl')
-    prediction['air.2m']=unnormalise(p[:,1],'air.2m')
-    persistence={'prmsl':get_persistence(prmsl_v),
-                 'air.2m':get_persistence(t2m_v)}
-    persistence_error={'prmsl':numpy.std(persistence['prmsl']),
-                       'air.2m':numpy.std(persistence['air.2m'])}
-    target={'prmsl':prmsl_v[model_meta['station']],
-            'air.2m':t2m_v[model_meta['station']]}
-    delta_m={'prmsl':numpy.std(target['prmsl'][model_meta['source_len']:(len(target['prmsl'])-model_meta['target_len'])]-
-                      prediction['prmsl']),
-             'air.2m':numpy.std(target['air.2m'][model_meta['source_len']:(len(target['air.2m'])-model_meta['target_len'])]-
-                      prediction['air.2m'])}
-    results={'persistence_error':persistence_error,
-             'delta_m':delta_m}
+prediction={'prmsl':[],'t2m':[]}
+p=simple_lstm_model.predict(val_source)
+prediction['prmsl']=unnormalise(p[:,0],'prmsl')
+prediction['air.2m']=unnormalise(p[:,1],'air.2m')
+persistence={'prmsl':get_persistence(prmsl_v),
+             'air.2m':get_persistence(t2m_v)}
+persistence_error={'prmsl':numpy.std(persistence['prmsl']),
+                   'air.2m':numpy.std(persistence['air.2m'])}
+target={'prmsl':prmsl_v[model_meta['station']],
+        'air.2m':t2m_v[model_meta['station']]}
+delta_m={'prmsl':numpy.std(target['prmsl'][model_meta['source_len']:(len(target['prmsl'])-model_meta['target_len'])]-
+                  prediction['prmsl']),
+         'air.2m':numpy.std(target['air.2m'][model_meta['source_len']:(len(target['air.2m'])-model_meta['target_len'])]-
+                  prediction['air.2m'])}
+results={'persistence_error':persistence_error,
+         'delta_m':delta_m}
 
-    pickle.dump(results, open("lag_%02d.pkl" % model_meta['target_len'], "wb"))
+if not os.path.isdir(args.opdir):
+    os.makedirs(args.opdir)
+pickle.dump(results, open("%s/errors_%02d.pkl" % (args.opdir,model_meta['target_len']), "wb"))
