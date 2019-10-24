@@ -109,17 +109,21 @@ def unnormalise_prmsl(p):
    return res
 
 # Load the validation data
-prmsl=twcr.load('prmsl',datetime.datetime(2010,3,12,18),
-                           version='2c')
+prmsl=twcr.load('prmsl',datetime.datetime(args.year,args.month,
+                                          args.day,args.hour),
+                        version='2c')
 prmsl=tensor_cube(prmsl.extract(iris.Constraint(member=1)))
-t2m=twcr.load('air.2m',datetime.datetime(2010,3,12,18),
-                           version='2c')
+t2m=twcr.load('air.2m',datetime.datetime(args.year,args.month,
+                                         args.day,args.hour),
+                       version='2c')
 t2m=tensor_cube(t2m.extract(iris.Constraint(member=1)))
-u10m=twcr.load('uwnd.10m',datetime.datetime(2010,3,12,18),
-                           version='2c')
+u10m=twcr.load('uwnd.10m',datetime.datetime(args.year,args.month,
+                                            args.day,args.hour),
+                          version='2c')
 u10m=tensor_cube(u10m.extract(iris.Constraint(member=1)))
-v10m=twcr.load('vwnd.10m',datetime.datetime(2010,3,12,18),
-                           version='2c')
+v10m=twcr.load('vwnd.10m',datetime.datetime(args.year,args.month,
+                                            args.day,args.hour),
+                          version='2c')
 v10m=tensor_cube(v10m.extract(iris.Constraint(member=1)))
 
 # Convert the validation data into tensor format
