@@ -26,7 +26,7 @@ while current_day<=end_day:
     if not is_done(current_day.year,current_day.month,
                    current_day.day,current_day.hour):
         cmd=("./make_ls_tensor.py --year=%d --month=%d" +
-            " --day=%d --hour=%d --epoch=10\n") % (
+            " --day=%d --hour=%d --epoch=9\n") % (
                current_day.year,current_day.month,
                current_day.day,current_day.hour)
         f.write(cmd)

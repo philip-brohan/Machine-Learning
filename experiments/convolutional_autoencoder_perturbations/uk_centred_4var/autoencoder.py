@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 # Convolutional autoencoder for 20CR prmsl fields.
-# This version does wind, temperature, and precip.
+# This version does wind, temperature, and prmsl.
 
 import os
 import sys
@@ -13,7 +13,7 @@ import numpy
 from glob import glob
 
 # How many epochs to train for
-n_epochs=50
+n_epochs=10
 
 # How big a latent space
 latent_dim=100
