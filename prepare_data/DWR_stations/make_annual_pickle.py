@@ -39,7 +39,8 @@ if args.opfile is None:
 if not os.path.isdir(os.path.dirname(args.opfile)):
     os.makedirs(os.path.dirname(args.opfile))
 
-ic=iris.load_cube('/scratch/hadpb/20CR/version_2c/%04d/%s.nc' % (args.year,args.variable),
+ic=iris.load_cube('%s/20CR/version_2c/%04d/%s.nc' %
+                  (os.getenv('SCRATCH'),args.year,args.variable),
                   iris.Constraint(coord_values={
                     'ensemble member number':lambda cell: cell==1}))
 tc=ic.coords('time')[0]
