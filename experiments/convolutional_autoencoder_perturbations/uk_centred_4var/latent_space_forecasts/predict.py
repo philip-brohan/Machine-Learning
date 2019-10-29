@@ -7,6 +7,7 @@
 import os
 import pickle
 import numpy
+import datetime
 import tensorflow as tf
 tf.enable_eager_execution()
 
@@ -16,9 +17,9 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--extras", help="Extra predictors",
                     type=str,default=None,action='append')
 parser.add_argument("--source_len", help="No of previous steps to use",
-                    type=int,required=False,default=12)
+                    type=int,required=False,default=4)
 parser.add_argument("--target_len", help="Steps forward to predict",
-                    type=int,required=False,default=12)
+                    type=int,required=False,default=1)
 parser.add_argument("--epochs", help="Epochs to run",
                     type=int,required=False,default=10)
 parser.add_argument("--n_nodes", help="No. of LSTM nodes",
@@ -26,7 +27,7 @@ parser.add_argument("--n_nodes", help="No. of LSTM nodes",
 parser.add_argument("--opdir", help="Directory for output files",
                     type=str,required=False,default='default')
 args = parser.parse_args()
-args.opdir=("%s/Machine-Learning/experiments/LS_LSTM/%s" %
+args.opdir=("%s/Machine-Learning-experiments/LS_LSTM/%s" %
                (os.getenv('SCRATCH'),args.opdir))
 if not os.path.isdir(args.opdir):
     os.makedirs(args.opdir)
@@ -112,7 +113,7 @@ def make_source(obs):
             if model_meta[extra]:
                 source[i-offset,idx,:]=obs[extra][i-offset:i]
                 idx += 1
-        source[i-offset,idx:,:]=obs['ls'][i-offset:i]
+        source[i-offset,idx:,:]=numpy.transpose(obs['ls'][i-offset:i])
     return source
 
 obs=load_ls(datetime.datetime(1969,1,1,0),datetime.datetime(2005,12,31,18))
@@ -130,19 +131,19 @@ val_ds=val_ds.cache().shuffle(BUFFER_SIZE).batch(BATCH_SIZE).repeat()
 # Define an LSTM model
 simple_lstm_model = tf.keras.models.Sequential([
     tf.keras.layers.LSTM(lstm_node_n, input_shape=train_source.shape[-2:]),
-    tf.keras.layers.Dense(2)
+    tf.keras.layers.Dense(100)
 ])
-simple_lstm_model.compile(optimizer='adam', loss='mean_squared_error')
+simple_lstm_model.compile(optimizer='adadelta', loss='mean_squared_error')
 
 # Train the model
 simple_lstm_model.fit(train_ds,
                       epochs=EPOCHS,
                       steps_per_epoch=1000,
                       validation_data=val_ds, 
-                      validation_steps=50)
+                      validation_steps=500)
 
 # Save the model
-save_file="%s/model" % args.opdir
+save_file="%s/predictor" % args.opdir
 if not os.path.isdir(os.path.dirname(save_file)):
     os.makedirs(os.path.dirname(save_file))
 tf.keras.models.save_model(simple_lstm_model,save_file)
