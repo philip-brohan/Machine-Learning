@@ -44,7 +44,7 @@ args = parser.parse_args()
 if args.opfile is None:
     purpose='training'
     if args.test: purpose='test'
-    args.opfile=(("%s/Machine-Learning-experiments/datasets/uk_centred/"+
+    args.opfile=(("%s/Machine-Learning-experiments/datasets/uk_centred+6h/"+
                   "%s/%s/%s/%04d-%02d-%02d:%02d.tfd") %
                        (os.getenv('SCRATCH'),args.source,args.variable,purpose,
                         args.year,args.month,args.day,args.hour))
@@ -100,7 +100,8 @@ def rr_cube(cbe):
 
 if args.source=='20CR2c':
     ic=twcr.load(args.variable,datetime.datetime(args.year,args.month,
-                                                args.day,args.hour),
+                                                args.day,args.hour)+
+                               datetime.timedelta(hours=6),
                  version='2c')
     ic=ic.extract(iris.Constraint(member=args.member))
     ic=rr_cube(ic)
