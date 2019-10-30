@@ -73,6 +73,13 @@ test_data = test_data.map(load_tensor)
 test_data = test_data.batch(batch_size)
 test_data = Dataset.zip((test_data, test_data))
 
+# Add noise to latent vector
+def noise(encoded):
+    encoded = encoded+tf.keras.backend.mean(encoded)
+    encoded = encoded/tf.keras.backend.std(encoded)
+    epsilon = tf.keras.backend.random_normal(tf.keras.backend.shape(encoded),mean=0.0,stddev=0.1)
+    return encoded+epsilon
+
 # Input placeholder
 original = tf.keras.layers.Input(shape=(79,159,4,), name='encoder_input')
 # Encoding layers
@@ -91,9 +98,10 @@ x = tf.keras.layers.Dropout(0.3)(x)
 # N-dimensional latent space representation
 x = tf.keras.layers.Reshape(target_shape=(9*19*108,))(x)
 encoded = tf.keras.layers.Dense(latent_dim,)(x)
+noisy = tf.keras.layers.Lambda(noise, output_shape=(latent_dim,))(encoded)
 
 # Define an encoder model
-encoder = tf.keras.models.Model(original, encoded, name='encoder')
+encoder = tf.keras.models.Model(original, noisy, name='encoder')
 
 # Decoding layers
 encoded = tf.keras.layers.Input(shape=(latent_dim,), name='decoder_input')
@@ -128,7 +136,7 @@ class CustomSaver(tf.keras.callbacks.Callback):
     def on_epoch_end(self, epoch, logs={}):
         save_dir=("%s/Machine-Learning-experiments/"+
                    "convolutional_autoencoder_perturbations/"+
-                   "multivariate_uk_centred/saved_models/Epoch_%04d") % (
+                   "multivariate_uk_centred_var/saved_models/Epoch_%04d") % (
                          os.getenv('SCRATCH'),epoch)
         if not os.path.isdir(os.path.dirname(save_dir)):
             os.makedirs(os.path.dirname(save_dir))
@@ -142,7 +150,7 @@ class CustomSaver(tf.keras.callbacks.Callback):
         history['val_loss'].append(logs['val_loss'])
         history_file=("%s/Machine-Learning-experiments/"+
                       "convolutional_autoencoder_perturbations/"+
-                      "multivariate_uk_centred/saved_models/history_to_%04d.pkl") % (
+                      "multivariate_uk_centred_var/saved_models/history_to_%04d.pkl") % (
                          os.getenv('SCRATCH'),epoch)
         pickle.dump(history, open(history_file, "wb"))
         
