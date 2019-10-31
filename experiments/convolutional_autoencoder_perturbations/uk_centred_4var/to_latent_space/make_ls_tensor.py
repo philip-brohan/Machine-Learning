@@ -139,7 +139,7 @@ v10m_t = tf.reshape(v10m_t,[79,159,1])
 # Get encoded versions of the validation data
 model_save_file=("%s/Machine-Learning-experiments/"+
                   "convolutional_autoencoder_perturbations/"+
-                  "multivariate_uk_centred/saved_models/"+
+                  "multivariate_uk_centred_var/saved_models/"+
                   "Epoch_%04d/encoder") % (
                       os.getenv('SCRATCH'),args.epoch)
 encoder=tf.keras.models.load_model(model_save_file,compile=False)

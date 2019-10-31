@@ -23,7 +23,7 @@ parser.add_argument("--target_len", help="Steps forward to predict",
 parser.add_argument("--epochs", help="Epochs to run",
                     type=int,required=False,default=10)
 parser.add_argument("--n_nodes", help="No. of LSTM nodes",
-                    type=int,required=False,default=32)
+                    type=int,required=False,default=100)
 parser.add_argument("--opdir", help="Directory for output files",
                     type=str,required=False,default='default')
 args = parser.parse_args()
@@ -116,13 +116,13 @@ def make_source(obs):
         source[i-offset,idx:,:]=numpy.transpose(obs['ls'][i-offset:i])
     return source
 
-obs=load_ls(datetime.datetime(1969,1,1,0),datetime.datetime(2005,12,31,18))
+obs=load_ls(datetime.datetime(1969,1,1,0),datetime.datetime(1973,12,31,18))
 train_source=make_source(obs)
 train_target=make_target(obs)
 train_ds = tf.data.Dataset.from_tensor_slices((train_source, train_target))
 train_ds=train_ds.cache().shuffle(BUFFER_SIZE).batch(BATCH_SIZE).repeat()
 
-obs=load_ls(datetime.datetime(2006,1,1,0),datetime.datetime(2009,12,31,18))
+obs=load_ls(datetime.datetime(1974,1,1,0),datetime.datetime(1974,12,31,18))
 val_source=make_source(obs)
 val_target=make_target(obs)
 val_ds = tf.data.Dataset.from_tensor_slices((val_source, val_target))

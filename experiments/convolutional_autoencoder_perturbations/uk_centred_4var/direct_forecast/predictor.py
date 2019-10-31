@@ -142,11 +142,11 @@ generator = tf.keras.models.Model(encoded, decoded, name='generator')
 output = generator(encoder(original))
 predictor = tf.keras.models.Model(inputs=original, outputs=output, name='predictor')
 
-reconstruction_loss = tf.keras.losses.mse(original, output)
+#reconstruction_loss = tf.keras.losses.mse(original, output)
 
-predictor.add_loss(reconstruction_loss)
+#predictor.add_loss(reconstruction_loss)
 
-predictor.compile(optimizer='adadelta')
+predictor.compile(optimizer='adadelta',loss='mean_squared_error')
 
 # Save model and history state after every epoch
 history={}
