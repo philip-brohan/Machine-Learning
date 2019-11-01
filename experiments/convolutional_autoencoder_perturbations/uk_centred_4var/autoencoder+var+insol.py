@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
-# Predict 20CR2c 6 hours.
-# This version does wind, temperature, and prmsl.
+# Convolutional autoencoder for 20CR prmsl fields.
+# This version does wind, temperature, and prmsl and is forced by insolation
 
 import os
 import sys
@@ -57,6 +57,8 @@ def load_tensor(file_name):
     ict = tf.reshape(ict,[79,159,4])
     return ict
 
+tr_target = tr_data.map(load_tensor)
+
 # Make a 5-variable tensor including the insolation field
 def load_tensor_w_insol(file_name):
     sict  = tf.read_file(file_name)
@@ -93,19 +95,9 @@ def load_tensor_w_insol(file_name):
     ict = tf.reshape(ict,[79,159,5])
     return ict
 
-source_data = tr_data.map(load_tensor_w_insol)
+tr_source = tr_data.map(load_tensor_w_insol)
 
-# Same from the 6-hours ahead data
-input_file_dir=(("%s/Machine-Learning-experiments/datasets/uk_centred+6h/" +
-                "20CR2c/air.2m/training/") %
-                   os.getenv('SCRATCH'))
-t2m_files=glob("%s/*.tfd" % input_file_dir)
-n_steps=len(t2m_files)
-tr_tfd = tf.constant(t2m_files)
-tr_data = Dataset.from_tensor_slices(tr_tfd).repeat(n_epochs)
-target_data = tr_data.map(load_tensor)
-
-tr_data = Dataset.zip((source_data, target_data))
+tr_data = Dataset.zip((tr_source, tr_target))
 tr_data = tr_data.shuffle(buffer_size).batch(batch_size)
 
 # Same for the test dataset
@@ -116,16 +108,8 @@ t2m_files=glob("%s/*.tfd" % input_file_dir)
 test_steps=len(t2m_files)
 test_tfd = tf.constant(t2m_files)
 test_data = Dataset.from_tensor_slices(test_tfd).repeat(n_epochs)
-test_source = test_data.map(load_tensor_w_insol)
-input_file_dir=(("%s/Machine-Learning-experiments/datasets/uk_centred+6h/" +
-                "20CR2c/air.2m/test/") %
-                   os.getenv('SCRATCH'))
-t2m_files=glob("%s/*.tfd" % input_file_dir)
-test_steps=len(t2m_files)
-test_tfd = tf.constant(t2m_files)
-test_data = Dataset.from_tensor_slices(test_tfd).repeat(n_epochs)
 test_target = test_data.map(load_tensor)
-
+test_source = test_data.map(load_tensor_w_insol)
 test_data = Dataset.zip((test_source, test_target))
 test_data = test_data.batch(batch_size)
 
@@ -133,7 +117,8 @@ test_data = test_data.batch(batch_size)
 def noise(encoded):
     encoded = encoded+tf.keras.backend.mean(encoded)
     encoded = encoded/tf.keras.backend.std(encoded)
-    epsilon = tf.keras.backend.random_normal(tf.keras.backend.shape(encoded),mean=0.0,stddev=0.1)
+    epsilon = tf.keras.backend.random_normal(tf.keras.backend.shape(encoded),
+                                             mean=0.0,stddev=0.1)
     return encoded+epsilon
 
 # Input placeholder
@@ -169,20 +154,16 @@ x = tf.keras.layers.Conv2DTranspose(36, (3, 3),  strides= (2,2), padding='valid'
 x = tf.keras.layers.ELU()(x)
 x = tf.keras.layers.Conv2DTranspose(12, (3, 3),  strides= (2,2), padding='valid')(x)
 x = tf.keras.layers.ELU()(x)
-decoded = tf.keras.layers.Conv2D(4, (3, 3), padding='same')(x) # Will be 75x159x4 - same as input
+decoded = tf.keras.layers.Conv2D(4, (3, 3), padding='same')(x) # Will be 75x159x4 
 
 # Define a generator (decoder) model
 generator = tf.keras.models.Model(encoded, decoded, name='generator')
 
-# Combine the encoder and the generator into a predictor
+# Combine the encoder and the generator into an autoencoder
 output = generator(encoder(original))
-predictor = tf.keras.models.Model(inputs=original, outputs=output, name='predictor')
+autoencoder = tf.keras.models.Model(inputs=original, outputs=output, name='autoencoder')
 
-#reconstruction_loss = tf.keras.losses.mse(original, output)
-
-#predictor.add_loss(reconstruction_loss)
-
-predictor.compile(optimizer='adadelta',loss='mean_squared_error')
+autoencoder.compile(optimizer='adadelta',loss='mean_squared_error')
 
 # Save model and history state after every epoch
 history={}
@@ -192,28 +173,30 @@ class CustomSaver(tf.keras.callbacks.Callback):
     def on_epoch_end(self, epoch, logs={}):
         save_dir=("%s/Machine-Learning-experiments/"+
                    "convolutional_autoencoder_perturbations/"+
-                   "multivariate_uk_centred_direct_forecast/saved_models/Epoch_%04d") % (
+                   "multivariate_uk_centred_var_insol/saved_models/"+
+                   "Epoch_%04d") % (
                          os.getenv('SCRATCH'),epoch)
         if not os.path.isdir(os.path.dirname(save_dir)):
             os.makedirs(os.path.dirname(save_dir))
         for model in ['autoencoder','encoder','generator']:
             if not os.path.isdir(os.path.dirname("%s/%s" % (save_dir,model))):
                 os.makedirs(os.path.dirname("%s/%s" % (save_dir,model)))
-        tf.keras.models.save_model(predictor,"%s/predictor" % save_dir)
+        tf.keras.models.save_model(autoencoder,"%s/autoencoder" % save_dir)
         tf.keras.models.save_model(encoder,"%s/encoder" % save_dir)
         tf.keras.models.save_model(generator,"%s/generator" % save_dir)
         history['loss'].append(logs['loss'])
         history['val_loss'].append(logs['val_loss'])
         history_file=("%s/Machine-Learning-experiments/"+
                       "convolutional_autoencoder_perturbations/"+
-                      "multivariate_uk_centred_direct_forecast/saved_models/history_to_%04d.pkl") % (
+                      "multivariate_uk_centred_var_insol/saved_models/"+
+                      "history_to_%04d.pkl") % (
                          os.getenv('SCRATCH'),epoch)
         pickle.dump(history, open(history_file, "wb"))
         
 saver = CustomSaver()
 
-# Train the predictor
-history=predictor.fit(x=tr_data,
+# Train the autoencoder
+history=autoencoder.fit(x=tr_data,
                 epochs=n_epochs,
                 steps_per_epoch=n_steps,
                 validation_data=test_data,

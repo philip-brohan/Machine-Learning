@@ -126,7 +126,7 @@ def dummy_cube():
 # Load the latent-space representation, and convert it back into normal space
 model_save_file=("%s/Machine-Learning-experiments/"+
                   "convolutional_autoencoder_perturbations/"+
-                  "multivariate_uk_centred_var/saved_models/"+
+                  "multivariate_uk_centred_var_insol/saved_models/"+
                   "Epoch_%04d/generator") % (
                       os.getenv('SCRATCH'),args.epoch)
 generator=tf.keras.models.load_model(model_save_file,compile=False)

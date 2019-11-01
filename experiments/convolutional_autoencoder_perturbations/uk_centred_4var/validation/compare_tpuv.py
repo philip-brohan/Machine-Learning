@@ -33,6 +33,22 @@ args = parser.parse_args()
 # Projection for tensors and plotting
 cs=iris.coord_systems.RotatedGeogCS(90,180,0)
 
+# load the insolation data
+def load_insolation(year,month,day,hour):
+    if month==2 and day==29: day=28
+    time_constraint=iris.Constraint(time=iris.time.PartialDateTime(
+                                    year=1969,
+                                    month=month,
+                                    day=day,
+                                    hour=hour))
+    ic=iris.load_cube("%s/20CR/version_2c/ensmean/cduvb.1969.nc" % os.getenv('DATADIR'),
+                      iris.Constraint(name='3-hourly Clear Sky UV-B Downward Solar Flux') &
+                      time_constraint)
+    coord_s=iris.coord_systems.GeogCS(iris.fileformats.pp.EARTH_RADIUS)
+    ic.coord('latitude').coord_system=coord_s
+    ic.coord('longitude').coord_system=coord_s
+    return ic
+
 # Define cube for regridding data to match the training tensors
 def tensor_cube(cbe):
     # Latitudes cover -90 to 90 with 79 values
@@ -168,6 +184,10 @@ def unnormalise_prmsl(p):
    res=p.copy()
    res.data *= 3000
    res.data += 101325
+   return res
+def normalise_insolation(p):
+   res=p.copy()
+   res.data /= 25
    return res
 
 # Normalise temperature by quantiles - just for plotting - balances colours
@@ -322,6 +342,7 @@ u10m=tensor_cube(u10m.extract(iris.Constraint(member=1)))
 v10m=twcr.load('vwnd.10m',datetime.datetime(2010,3,12,18),
                            version='2c')
 v10m=tensor_cube(v10m.extract(iris.Constraint(member=1)))
+insol=tensor_cube(load_insolation(2010,3,12,18))
 
 # Convert the validation data into tensor format
 t2m_t = tf.convert_to_tensor(normalise_t2m(t2m).data,numpy.float32)
@@ -332,16 +353,18 @@ u10m_t = tf.convert_to_tensor(normalise_wind(u10m).data,numpy.float32)
 u10m_t = tf.reshape(u10m_t,[79,159,1])
 v10m_t = tf.convert_to_tensor(normalise_wind(v10m).data,numpy.float32)
 v10m_t = tf.reshape(v10m_t,[79,159,1])
+insol_t = tf.convert_to_tensor(normalise_insolation(insol).data,numpy.float32)
+insol_t = tf.reshape(insol_t,[79,159,1])
 
 # Get autoencoded versions of the validation data
 model_save_file=("%s/Machine-Learning-experiments/"+
                   "convolutional_autoencoder_perturbations/"+
-                  "multivariate_uk_centred_var/saved_models/"+
+                  "multivariate_uk_centred_var_insol/saved_models/"+
                   "Epoch_%04d/autoencoder") % (
                       os.getenv('SCRATCH'),args.epoch)
 autoencoder=tf.keras.models.load_model(model_save_file,compile=False)
-ict = tf.concat([t2m_t,prmsl_t,u10m_t,v10m_t],2) # Now [79,159,4]
-ict = tf.reshape(ict,[1,79,159,4])
+ict = tf.concat([t2m_t,prmsl_t,u10m_t,v10m_t,insol_t],2) # Now [79,159,5]
+ict = tf.reshape(ict,[1,79,159,5])
 result = autoencoder.predict_on_batch(ict)
 result = tf.reshape(result,[79,159,4])
 
