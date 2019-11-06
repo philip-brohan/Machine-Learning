@@ -13,7 +13,7 @@ import numpy
 from glob import glob
 
 # How many epochs to train for
-n_epochs=11
+n_epochs=25
 
 # Target data setup
 buffer_size=100
@@ -106,6 +106,9 @@ x = tf.keras.layers.Conv2D(108, (3, 3), strides= (2,2), padding='valid')(x)
 x = tf.keras.layers.ELU()(x)
 x = tf.keras.layers.Dropout(0.3)(x)
 x = tf.keras.layers.Reshape(target_shape=(9*19*108,))(x)
+x = tf.keras.layers.Dropout(0.3)(x)
+x = tf.keras.layers.Dense(100,)(x)
+x = tf.keras.layers.ELU()(x)
 encoded = tf.keras.layers.Dense(2,)(x)
 
 encoder = tf.keras.models.Model(inputs=original, 
