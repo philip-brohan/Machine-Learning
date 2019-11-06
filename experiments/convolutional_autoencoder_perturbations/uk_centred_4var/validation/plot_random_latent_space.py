@@ -31,7 +31,7 @@ dask.config.set(scheduler='single-threaded')
 import argparse
 parser = argparse.ArgumentParser()
 parser.add_argument("--epoch", help="Epoch",
-                    type=int,required=True)
+                    type=int,required=False,default=10)
 
 args = parser.parse_args()
 
@@ -126,7 +126,7 @@ def dummy_cube():
 # Load the latent-space representation, and convert it back into normal space
 model_save_file=("%s/Machine-Learning-experiments/"+
                   "convolutional_autoencoder_perturbations/"+
-                  "multivariate_uk_centred_var_insol/saved_models/"+
+                  "insol_2_insol/saved_models/"+
                   "Epoch_%04d/generator") % (
                       os.getenv('SCRATCH'),args.epoch)
 generator=tf.keras.models.load_model(model_save_file,compile=False)
@@ -135,7 +135,7 @@ generator=tf.keras.models.load_model(model_save_file,compile=False)
 ls=tf.convert_to_tensor(numpy.random.normal(size=100),numpy.float32)
 ls = tf.reshape(ls,[1,100])
 result=generator.predict_on_batch(ls)
-result = tf.reshape(result,[79,159,4])
+result = tf.reshape(result,[79,159,5])
 t2m=dummy_cube()
 t2m.data = tf.reshape(result.numpy()[:,:,0],[79,159]).numpy()
 t2m = unnormalise_t2m(t2m)

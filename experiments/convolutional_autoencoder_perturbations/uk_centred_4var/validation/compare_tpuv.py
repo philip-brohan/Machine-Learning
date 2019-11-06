@@ -27,7 +27,7 @@ from matplotlib.lines import Line2D
 import argparse
 parser = argparse.ArgumentParser()
 parser.add_argument("--epoch", help="Epoch",
-                    type=int,required=True)
+                    type=int,required=False,default=10)
 args = parser.parse_args()
 
 # Projection for tensors and plotting
@@ -359,14 +359,14 @@ insol_t = tf.reshape(insol_t,[79,159,1])
 # Get autoencoded versions of the validation data
 model_save_file=("%s/Machine-Learning-experiments/"+
                   "convolutional_autoencoder_perturbations/"+
-                  "multivariate_uk_centred_var_insol/saved_models/"+
+                  "insol_2_insol/saved_models/"+
                   "Epoch_%04d/autoencoder") % (
                       os.getenv('SCRATCH'),args.epoch)
 autoencoder=tf.keras.models.load_model(model_save_file,compile=False)
 ict = tf.concat([t2m_t,prmsl_t,u10m_t,v10m_t,insol_t],2) # Now [79,159,5]
 ict = tf.reshape(ict,[1,79,159,5])
 result = autoencoder.predict_on_batch(ict)
-result = tf.reshape(result,[79,159,4])
+result = tf.reshape(result,[79,159,5])
 
 # Convert the encoded fields back to unnormalised cubes 
 t2m_r=t2m.copy()
