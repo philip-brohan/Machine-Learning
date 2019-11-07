@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 
-# Run the direct-forecast predictor for a year, storing the real and
-#  latent space predictors every 6 hours.
+# Run the direct-forecast predictor for a year, forcing it with
+#  insolation, and storing the real and latent space predictors 
+#  every 6 hours.
 
 import tensorflow as tf
 tf.enable_eager_execution()
@@ -9,12 +10,13 @@ import numpy
 import os
 import pickle
 import datetime
+import math
 
 import iris
 import IRData.twcr as twcr
 
 # Start on Jan 1st, 1989
-dtstart=datetime.datetime(1989,1,1,0)
+dtstart=datetime.datetime(1989,3,1,0)
 
 # Predictor model epoch
 epoch=10
@@ -121,12 +123,48 @@ model_save_file=("%s/Machine-Learning-experiments/"+
                       os.getenv('SCRATCH'),epoch)
 encoder=tf.keras.models.load_model(model_save_file,compile=False)
 
+# We want to constrain the forecasts so they follow the diurnal and annual cycles.
+# Do this by generating multiple forecasts, and only keeping those with the
+# correct cycle location. This requires a model to judge cycle location from
+# the weather fields:
+#model_save_file=("%s/Machine-Learning-experiments/"+
+#                   "convolutional_autoencoder_perturbations/"+
+#                   "check_cycles/saved_models/Epoch_0024/encoder") % (
+#                         os.getenv('SCRATCH')) 
+#cycler=tf.keras.models.load_model(model_save_file,compile=False)
+
+
 # Run forward in 6-hour increments
+mdays=[0,31,59,90,120,151,181,212,243,273,304,334]
 current=dtstart
-while current<dtstart+datetime.timedelta(days=31):
+while current<dtstart+datetime.timedelta(days=365):
     current += datetime.timedelta(hours=6)
-    latent_s=encoder.predict_on_batch(state_v)
-    state_v=predictor.predict_on_batch(state_v)
+    latent_s = encoder.predict_on_batch(state_v)
+    state_v = predictor.predict_on_batch(state_v)
+
+#    diurnal = current.hour/24
+#    dy = current.day
+#    if current.month==2 and current.day==29: dy=28
+#    annual=math.sin((3.141592*(mdays[current.month-1]+dy)/365))
+#    count=0
+#    while count<100:
+#        latent_s = encoder.predict_on_batch(state_v)
+#        new_v = predictor.predict_on_batch(state_v)
+#        cycle_i = tf.convert_to_tensor(new_v,numpy.float32)
+#        cycle_i = tf.reshape(cycle_i,[1,79,159,4])
+#        e_cycles = cycler.predict_on_batch(cycle_i)
+#        if (abs(annual-e_cycles[0,0])<0.05 and
+#            abs(diurnal-e_cycles[0,1])<0.5):
+#            state_v = new_v
+#            break
+#        count=count+1
+#        print(annual)
+#        print(e_cycles[0,0])
+#        print(diurnal)
+#        print(e_cycles[0,1])
+#        if count>99:
+#            raise Exception("Cycle match failure")
+
     pfile=("%s/Machine-Learning-experiments/GCM_mucdf/"+
            "%04d-%02d-%02d:%02d.pkl") % (os.getenv('SCRATCH'),
             current.year,current.month,current.day,current.hour)
@@ -137,9 +175,9 @@ while current<dtstart+datetime.timedelta(days=31):
                  'state_v':state_v},
                 open(pfile,'wb'))
 
-    # Add insolation for the next step
+    # Replace calculated insolation with actual for the next step
     insol = tensor_cube(load_insolation(current.year,current.month,current.day,current.hour))
     insol = tf.convert_to_tensor(normalise_insolation(insol).data,numpy.float32)
     insol = tf.reshape(insol,[1,79,159,1])
-    state_v = tf.concat([state_v,insol],3)
+    state_v = tf.concat([state_v[:,:,:,0:4],insol],3)
     state_v = tf.reshape(state_v,[1,79,159,5])

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 # Predict 20CR2c 6 hours.
-# This version does wind, temperature, and prmsl.
+# This version does wind, temperature, prmsl, and insolation.
 
 import os
 import sys
@@ -33,32 +33,8 @@ tr_tfd = tf.constant(t2m_files)
 # Create TensorFlow Dataset object from the file names
 tr_data = Dataset.from_tensor_slices(tr_tfd).repeat(n_epochs)
 
-# From the t2m file name, make a four-variable tensor
-def load_tensor(file_name):
-    sict  = tf.read_file(file_name)
-    t2m = tf.parse_tensor(sict,numpy.float32)
-    t2m = tf.reshape(t2m,[79,159,1])
-    file_name = tf.strings.regex_replace(file_name,
-                                      'air.2m','prmsl')
-    sict  = tf.read_file(file_name)
-    prmsl = tf.parse_tensor(sict,numpy.float32)
-    prmsl = tf.reshape(prmsl,[79,159,1])
-    file_name = tf.strings.regex_replace(file_name,
-                                      'prmsl','uwnd.10m')
-    sict  = tf.read_file(file_name)
-    uwnd  = tf.parse_tensor(sict,numpy.float32)
-    uwnd  = tf.reshape(uwnd,[79,159,1])
-    file_name = tf.strings.regex_replace(file_name,
-                                      'uwnd.10m','vwnd.10m')
-    sict  = tf.read_file(file_name)
-    vwnd  = tf.parse_tensor(sict,numpy.float32)
-    vwnd  = tf.reshape(vwnd,[79,159,1])
-    ict = tf.concat([t2m,prmsl,uwnd,vwnd],2) # Now [79,159,4]
-    ict = tf.reshape(ict,[79,159,4])
-    return ict
-
 # Make a 5-variable tensor including the insolation field
-def load_tensor_w_insol(file_name):
+def load_tensor(file_name):
     sict  = tf.read_file(file_name)
     t2m = tf.parse_tensor(sict,numpy.float32)
     t2m = tf.reshape(t2m,[79,159,1])
@@ -93,7 +69,7 @@ def load_tensor_w_insol(file_name):
     ict = tf.reshape(ict,[79,159,5])
     return ict
 
-source_data = tr_data.map(load_tensor_w_insol)
+source_data = tr_data.map(load_tensor)
 
 # Same from the 6-hours ahead data
 input_file_dir=(("%s/Machine-Learning-experiments/datasets/uk_centred+6h/" +
@@ -116,7 +92,7 @@ t2m_files=glob("%s/*.tfd" % input_file_dir)
 test_steps=len(t2m_files)
 test_tfd = tf.constant(t2m_files)
 test_data = Dataset.from_tensor_slices(test_tfd).repeat(n_epochs)
-test_source = test_data.map(load_tensor_w_insol)
+test_source = test_data.map(load_tensor)
 input_file_dir=(("%s/Machine-Learning-experiments/datasets/uk_centred+6h/" +
                 "20CR2c/air.2m/test/") %
                    os.getenv('SCRATCH'))
@@ -161,15 +137,15 @@ encoder = tf.keras.models.Model(original, noisy, name='encoder')
 
 # Decoding layers
 encoded = tf.keras.layers.Input(shape=(latent_dim,), name='decoder_input')
-x = tf.keras.layers.Dense(9*19*108,)(encoded)
-x = tf.keras.layers.Reshape(target_shape=(9,19,108,))(x)
-x = tf.keras.layers.Conv2DTranspose(108, (3, 3),  strides= (2,2), padding='valid')(x)
+x = tf.keras.layers.Dense(9*19*90,)(encoded)
+x = tf.keras.layers.Reshape(target_shape=(9,19,90,))(x)
+x = tf.keras.layers.Conv2DTranspose(90, (3, 3),  strides= (2,2), padding='valid')(x)
 x = tf.keras.layers.ELU()(x)
-x = tf.keras.layers.Conv2DTranspose(36, (3, 3),  strides= (2,2), padding='valid')(x)
+x = tf.keras.layers.Conv2DTranspose(30, (3, 3),  strides= (2,2), padding='valid')(x)
 x = tf.keras.layers.ELU()(x)
-x = tf.keras.layers.Conv2DTranspose(12, (3, 3),  strides= (2,2), padding='valid')(x)
+x = tf.keras.layers.Conv2DTranspose(10, (3, 3),  strides= (2,2), padding='valid')(x)
 x = tf.keras.layers.ELU()(x)
-decoded = tf.keras.layers.Conv2D(4, (3, 3), padding='same')(x) # Will be 75x159x4 - same as input
+decoded = tf.keras.layers.Conv2D(5, (3, 3), padding='same')(x) # Will be 75x159x5 - same as input
 
 # Define a generator (decoder) model
 generator = tf.keras.models.Model(encoded, decoded, name='generator')
@@ -177,10 +153,6 @@ generator = tf.keras.models.Model(encoded, decoded, name='generator')
 # Combine the encoder and the generator into a predictor
 output = generator(encoder(original))
 predictor = tf.keras.models.Model(inputs=original, outputs=output, name='predictor')
-
-#reconstruction_loss = tf.keras.losses.mse(original, output)
-
-#predictor.add_loss(reconstruction_loss)
 
 predictor.compile(optimizer='adadelta',loss='mean_squared_error')
 

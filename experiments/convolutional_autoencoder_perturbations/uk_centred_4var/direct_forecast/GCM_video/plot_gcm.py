@@ -7,9 +7,6 @@ import os
 import datetime
 import pickle
 
-#import tensorflow as tf
-#tf.enable_eager_execution()
-
 import iris
 import numpy
 import math
@@ -422,8 +419,8 @@ x=numpy.linspace(0,10,10)
 latent_img = ax2.pcolorfast(x,x,numpy.reshape(ls,(10,10)),
                            cmap='viridis',
                              alpha=1.0,
-                             vmin=-5,
-                             vmax=5,
+                             vmin=-3,
+                             vmax=3,
                              zorder=1000)
 
 # Render the figure as a png

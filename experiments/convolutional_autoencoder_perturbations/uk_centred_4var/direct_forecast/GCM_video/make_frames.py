@@ -14,6 +14,7 @@ if not os.path.isdir(opdir):
 # Function to check if the job is already done for this timepoint
 def is_done(year,month,day,hour):
     op_file_name=("%s/images/ML_df_GCM_4var/" +
+
                   "%04d%02d%02d%02d%02d.png") % (
                             os.getenv('SCRATCH'),
                             year,month,day,int(hour),
@@ -24,8 +25,8 @@ def is_done(year,month,day,hour):
 
 f=open("run.txt","w+")
 
-start_day=datetime.datetime(1989,  1,  1,  0)
-end_day  =datetime.datetime(1989,  1, 31, 23)
+start_day=datetime.datetime(1989,  3,  1,  0)
+end_day  =datetime.datetime(1989,  3, 31, 23)
 
 current_day=start_day
 while current_day<=end_day:

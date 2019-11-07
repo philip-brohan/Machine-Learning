@@ -115,7 +115,7 @@ test_data = test_data.batch(batch_size)
 
 # Add noise to latent vector
 def noise(encoded):
-    encoded = encoded+tf.keras.backend.mean(encoded)
+    encoded = encoded-tf.keras.backend.mean(encoded)
     encoded = encoded/tf.keras.backend.std(encoded)
     epsilon = tf.keras.backend.random_normal(tf.keras.backend.shape(encoded),
                                              mean=0.0,stddev=0.1)
@@ -136,6 +136,7 @@ x = tf.keras.layers.Dropout(0.3)(x)
 x = tf.keras.layers.Conv2D(90, (3, 3), strides= (2,2), padding='valid')(x)
 x = tf.keras.layers.ELU()(x)
 x = tf.keras.layers.Dropout(0.3)(x)
+
 # N-dimensional latent space representation
 x = tf.keras.layers.Reshape(target_shape=(9*19*90,))(x)
 encoded = tf.keras.layers.Dense(latent_dim,)(x)
@@ -144,9 +145,12 @@ noisy = tf.keras.layers.Lambda(noise, output_shape=(latent_dim,))(encoded)
 # Define an encoder model
 encoder = tf.keras.models.Model(original, noisy, name='encoder')
 
+
 # Decoding layers
 encoded = tf.keras.layers.Input(shape=(latent_dim,), name='decoder_input')
 x = tf.keras.layers.Dense(9*19*108,)(encoded)
+x = tf.keras.layers.ELU()(x)
+x = tf.keras.layers.Dropout(0.3)(x)
 x = tf.keras.layers.Reshape(target_shape=(9,19,108,))(x)
 x = tf.keras.layers.Conv2DTranspose(108, (3, 3),  strides= (2,2), padding='valid')(x)
 x = tf.keras.layers.ELU()(x)
