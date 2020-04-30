@@ -15,7 +15,6 @@
 
 import os
 import tensorflow as tf
-from tensorflow.data import Dataset
 from glob import glob
 import numpy
 
@@ -54,7 +53,7 @@ def dataset(purpose='training',source='20CR2c',variable='prmsl',length=None,
     data_tfd = tf.constant(data_files)
 
     # Create TensorFlow Dataset objects from the file names
-    tr_data = Dataset.from_tensor_slices(data_tfd)
+    tr_data = tf.data.Dataset.from_tensor_slices(data_tfd)
     tr_data = tr_data.shuffle(buffer_size=buffer_size,
                               reshuffle_each_iteration=reshuffle_each_iteration)
     nrep=1
@@ -65,8 +64,8 @@ def dataset(purpose='training',source='20CR2c',variable='prmsl',length=None,
     # We don't want the file names, we want their contents, so
     #  add a map to convert from names to contents.
     def load_tensor(file_name):
-        sict=tf.read_file(file_name) # serialised
-        ict=tf.parse_tensor(sict,numpy.float32)
+        sict=tf.io.read_file(file_name) # serialised
+        ict=tf.io.parse_tensor(sict,numpy.float32)
         return ict
     tr_data = tr_data.map(load_tensor)
 

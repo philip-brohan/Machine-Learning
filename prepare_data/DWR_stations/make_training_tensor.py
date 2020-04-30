@@ -6,7 +6,6 @@
 # Serialise that and store it on $SCRATCH.
 
 import tensorflow as tf
-tf.enable_eager_execution()
 import numpy
 
 import IRData.twcr as twcr
@@ -93,5 +92,5 @@ else:
 ict=tf.convert_to_tensor(ensemble, numpy.float32)
 
 # Write to tfrecord file
-sict=tf.serialize_tensor(ict)
-tf.write_file(args.opfile,sict)
+sict=tf.io.serialize_tensor(ict)
+tf.io.write_file(args.opfile,sict)

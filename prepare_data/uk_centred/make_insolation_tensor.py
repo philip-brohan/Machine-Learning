@@ -9,7 +9,6 @@
 
 
 import tensorflow as tf
-tf.enable_eager_execution()
 import numpy
 
 import IRData.twcr as twcr
@@ -59,6 +58,7 @@ def rr_cube(cbe):
     # Standard pole with UK at centre
     cs=iris.coord_systems.RotatedGeogCS(90.0,180.0,0.0)
     # Latitudes cover -90 to 90 with 79 values
+
     lat_values=numpy.arange(-90,91,180/78)
     latitude = iris.coords.DimCoord(lat_values,
                                     standard_name='latitude',
@@ -96,4 +96,4 @@ ict=tf.convert_to_tensor(ic.data, numpy.float32)
 
 # Write to tfrecord file
 sict=tf.serialize_tensor(ict)
-tf.write_file(args.opfile,sict)
+tf.io.write_file(args.opfile,sict)

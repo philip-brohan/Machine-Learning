@@ -62,6 +62,6 @@ def prepare_data(date,purpose='training',source='20CR2c',variable='prmsl',
 
     # Write to tfrecord file
     sict=tf.serialize_tensor(ict)
-    tf.write_file(opfile,sict)
+    tf.io.write_file(opfile,sict)
 
 

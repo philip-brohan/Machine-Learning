@@ -4,8 +4,6 @@
 
 import os
 import tensorflow as tf
-from tensorflow.data import Dataset
-tf.enable_eager_execution()
 from glob import glob
 import numpy
 
@@ -15,7 +13,7 @@ input_file_dir=("%s/Machine-Learning-experiments/datasets/20CR2c/prmsl/training/
 train_tfd = tf.constant(glob("%s/*.tfd" % input_file_dir))
 
 # Create TensorFlow Dataset object from the file names
-tr_data = Dataset.from_tensor_slices(train_tfd)
+tr_data = tf.data.Dataset.from_tensor_slices(train_tfd)
 
 # The Dataset will run out of data when it has used each file once
 #  extend it to 10,000 samples by repeating it
@@ -28,8 +26,8 @@ tr_data = tr_data.shuffle(buffer_size=10)
 # We don't want the file names, we want their contents, so
 #  add a map to convert from names to contents.
 def load_tensor(file_name):
-    sict=tf.read_file(file_name) # serialised
-    ict=tf.parse_tensor(sict,numpy.float32)
+    sict=tf.io.read_file(file_name) # serialised
+    ict=tf.io.parse_tensor(sict,numpy.float32)
     return ict
 tr_data = tr_data.map(load_tensor)
 

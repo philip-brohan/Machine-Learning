@@ -3,16 +3,17 @@
 # Show the autoencoder weights.
 
 import tensorflow as tf
-tf.enable_eager_execution()
 import numpy
 
+import os
+import sys
+sys.path.append('%s/../../../ML_utilities/' % os.path.dirname(__file__))
 import ML_Utilities
 
 import IRData.twcr as twcr
 import iris
 import datetime
 import argparse
-import os
 import math
 
 import Meteorographica as mg

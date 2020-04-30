@@ -7,8 +7,6 @@
 
 import os
 import tensorflow as tf
-#tf.enable_eager_execution()
-from tensorflow.data import Dataset
 from glob import glob
 import numpy
 import pickle
@@ -25,7 +23,7 @@ train_tfd = tf.constant(training_files)
 
 
 # Create TensorFlow Dataset object from the file names
-tr_data = Dataset.from_tensor_slices(train_tfd)
+tr_data = tf.data.Dataset.from_tensor_slices(train_tfd)
 
 # Use all the data once each epoch
 tr_data = tr_data.repeat(n_epochs)
@@ -37,8 +35,8 @@ tr_data = tr_data.shuffle(buffer_size=10)
 # We don't want the file names, we want their contents, so
 #  add a map to convert from names to contents.
 def load_tensor(file_name):
-    sict=tf.read_file(file_name) # serialised
-    ict=tf.parse_tensor(sict,numpy.float32)
+    sict=tf.io.read_file(file_name) # serialised
+    ict=tf.io.parse_tensor(sict,numpy.float32)
     return ict
 tr_data = tr_data.map(load_tensor)
 
@@ -55,7 +53,7 @@ test_file_dir=("%s/Machine-Learning-experiments/datasets/20CR2c/prmsl/test/" %
 test_files=glob("%s/*.tfd" % test_file_dir)
 test_steps=len(test_files)
 test_tfd = tf.constant(test_files)
-test_data = Dataset.from_tensor_slices(test_tfd)
+test_data = tf.data.Dataset.from_tensor_slices(test_tfd)
 test_data = test_data.repeat(n_epochs)
 test_data = test_data.shuffle(buffer_size=10)
 test_data = test_data.map(load_tensor)
@@ -82,13 +80,13 @@ history=autoencoder.fit(x=tr_data, # Get (source,target) pairs from this Dataset
                         steps_per_epoch=n_steps,
                         validation_data=test_data,
                         validation_steps=test_steps,
-                        verbose=2) # One line per epoch
+                        verbose=1)
 
 # Save the model
 save_file="%s/Machine-Learning-experiments/simple_autoencoder/saved_models/Epoch_%04d" % (
                  os.getenv('SCRATCH'),n_epochs)
-if not os.path.isdir(os.path.dirname(save_file)):
-    os.makedirs(os.path.dirname(save_file))
+if not os.path.isdir(save_file):
+    os.makedirs(save_file)
 tf.keras.models.save_model(autoencoder,save_file)
 # Save the training history
 history_file="%s/Machine-Learning-experiments/simple_autoencoder/saved_models/history_to_%04d.pkl" % (

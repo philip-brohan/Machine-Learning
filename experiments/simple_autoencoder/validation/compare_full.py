@@ -3,7 +3,6 @@
 # General model quality plot
 
 import tensorflow as tf
-tf.enable_eager_execution()
 import numpy
 
 import IRData.twcr as twcr

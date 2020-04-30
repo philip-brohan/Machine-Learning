@@ -9,7 +9,6 @@
 
 
 import tensorflow as tf
-tf.enable_eager_execution()
 import numpy
 
 import IRData.twcr as twcr
@@ -97,4 +96,4 @@ ict=tf.convert_to_tensor(ic.data, numpy.float32)
 
 # Write to tfrecord file
 sict=tf.serialize_tensor(ict)
-tf.write_file(args.opfile,sict)
+tf.io.write_file(args.opfile,sict)
